@@ -18,11 +18,37 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    // --- NEW FIELDS FOR DASHBOARD ---
+    level: {
+        type: Number,
+        default: 1
+    },
+    xp: {
+        type: Number,
+        default: 0
+    },
+    rank: {
+        type: String,
+        default: 'Novice'
+    },
+    correctAnswers: { // Labeled as "Souls Claimed" on frontend
+        type: Number,
+        default: 0
+    },
+    dailyStreak: { // Labeled as "Devil's Favor" on frontend
+        type: Number,
+        default: 0
+    },
+    lastLogin: {
+        type: Date,
+        default: Date.now
+    },
+    // --- END NEW FIELDS ---
     createdAt: {
         type: Date,
         default: Date.now
     }
-});
+}, { timestamps: true }); // Using timestamps adds createdAt and updatedAt automatically
 
 // Middleware to hash password before saving a new user
 userSchema.pre('save', async function(next) {
@@ -41,4 +67,3 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
 
 const User = mongoose.model('User', userSchema);
 export default User;
-

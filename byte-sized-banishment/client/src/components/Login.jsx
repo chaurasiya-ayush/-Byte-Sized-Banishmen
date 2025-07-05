@@ -1,32 +1,28 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 
 const Login = ({ setIsRegister, setShowModal }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     const toastId = toast.loading("Logging in...");
-
     try {
-      const { data } = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        { email, password }
-      );
+      const data = await login(email, password);
       toast.success(data.message, { id: toastId });
-      // In a real app, you'd save the token and user data to state/context
-      console.log("Login successful:", data);
-      localStorage.setItem("authToken", data.token);
       setShowModal(false);
+      navigate("/dashboard");
     } catch (error) {
       const message =
         error.response?.data?.message || "An error occurred during login.";
       toast.error(message, { id: toastId });
-      console.error("Login error:", error.response);
     } finally {
       setLoading(false);
     }
