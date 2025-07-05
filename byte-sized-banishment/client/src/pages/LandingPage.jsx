@@ -34,7 +34,7 @@ const LandingPage = () => {
           onClick={handleGetStartedClick}
           className="bg-white text-gray-900 font-bold py-4 px-8 rounded-full text-lg hover:bg-red-500 hover:text-white transform hover:scale-105 transition-all duration-300 shadow-lg shadow-red-500/30"
         >
-          {currentUser ? "Enter the Gauntlet" : "Login in"}
+          {currentUser ? "Enter the Gauntlet" : "Get Started"}
         </button>
       </div>
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
