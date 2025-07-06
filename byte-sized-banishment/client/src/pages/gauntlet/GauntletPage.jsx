@@ -11,7 +11,6 @@ const GauntletPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Initialize state from the navigation state passed by the setup modal
   const [session, setSession] = useState(location.state?.sessionData);
   const [currentQuestion, setCurrentQuestion] = useState(
     location.state?.sessionData?.question
@@ -22,12 +21,26 @@ const GauntletPage = () => {
   const [stats, setStats] = useState({ strikesLeft: 3, score: 0 });
 
   useEffect(() => {
-    // If someone tries to access this page directly without starting a session, redirect them.
     if (!session) {
       toast.error("You must start a gauntlet from the dashboard first!");
       navigate("/dashboard");
     }
   }, [session, navigate]);
+
+  // This effect sets the initial userAnswer when the question changes.
+  // For code questions, it provides a function template.
+  useEffect(() => {
+    if (currentQuestion) {
+      if (currentQuestion.type === "code") {
+        // Extract function name from prompt for a better template
+        const match = currentQuestion.prompt.match(/`(\w+)\s*\([^)]*\)`/);
+        const functionName = match ? match[1] : "yourFunction";
+        setUserAnswer(`function ${functionName}() {\n  // Your code here\n}`);
+      } else {
+        setUserAnswer("");
+      }
+    }
+  }, [currentQuestion]);
 
   const handleSubmit = async () => {
     if (userAnswer === "") {
@@ -54,7 +67,9 @@ const GauntletPage = () => {
       setFeedback(data.feedback);
 
       if (data.isGameOver) {
-        toast.error("The Devil has claimed your soul!", { duration: 5000 });
+        toast.error(data.feedback?.text || "The Devil has claimed your soul!", {
+          duration: 5000,
+        });
         navigate("/dashboard");
         return;
       }
@@ -67,7 +82,7 @@ const GauntletPage = () => {
 
       setCurrentQuestion(data.nextQuestion);
       setStats(data.updatedStats);
-      setUserAnswer(""); // Reset answer for the next question
+      // The userAnswer will be reset by the useEffect hook when currentQuestion changes
     } catch (error) {
       toast.error(error.response?.data?.message || "An error occurred.");
       navigate("/dashboard");
@@ -89,7 +104,6 @@ const GauntletPage = () => {
       <div className="max-w-4xl mx-auto">
         <DevilDialogue feedback={feedback} />
         <StatusBar stats={stats} />
-
         <div className="bg-gray-800 border border-gray-700 rounded-lg p-8">
           <div className="mb-8">
             <p className="text-sm text-gray-400 mb-2">
@@ -100,13 +114,11 @@ const GauntletPage = () => {
               {currentQuestion.prompt}
             </h2>
           </div>
-
           <AnswerZone
             question={currentQuestion}
             userAnswer={userAnswer}
             setUserAnswer={setUserAnswer}
           />
-
           <div className="mt-10 text-center">
             <button
               onClick={handleSubmit}

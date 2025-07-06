@@ -1,7 +1,7 @@
 import React from "react";
 import MCQComponent from "./MCQComponent";
 import IntegerComponent from "./IntegerComponent";
-// Import CodeEditorComponent when you build it
+import CodeEditorComponent from "./CodeEditorComponent"; 
 
 const AnswerZone = ({ question, userAnswer, setUserAnswer }) => {
   switch (question.type) {
@@ -17,8 +17,14 @@ const AnswerZone = ({ question, userAnswer, setUserAnswer }) => {
       return (
         <IntegerComponent value={userAnswer} onAnswerChange={setUserAnswer} />
       );
-    // case 'code':
-    //     return <CodeEditorComponent value={userAnswer} onCodeChange={setUserAnswer} />;
+    case "code": // <-- ADD NEW CASE
+      return (
+        <CodeEditorComponent
+          language={question.subject}
+          value={userAnswer}
+          onCodeChange={setUserAnswer}
+        />
+      );
     default:
       return (
         <p className="text-center text-gray-500">Unsupported question type.</p>

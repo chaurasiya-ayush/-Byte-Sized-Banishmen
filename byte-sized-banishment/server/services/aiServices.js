@@ -2,56 +2,48 @@ import Question from "../models/questionModel.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { executeCode } from "./codeExecutionService.js"; // <-- IMPORT
 
-// --- Robustly load the JSON file ---
+// --- Load Dialogue ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const dialoguePath = path.join(__dirname, "../data/dialogueWithAudio.json");
 let dialogueLines = {};
 try {
-  const rawData = fs.readFileSync(dialoguePath);
-  dialogueLines = JSON.parse(rawData);
+  dialogueLines = JSON.parse(fs.readFileSync(dialoguePath));
 } catch (error) {
-  console.error(
-    "Could not read or parse dialogueWithAudio.json. Make sure the file exists and is valid JSON.",
-    error
-  );
+  console.error("Could not read dialogueWithAudio.json.", error);
 }
 
-// --- Engine 1: Adaptive Question Selector ---
+// --- Engine 1: Question Selector ---
 async function selectNextQuestion(session, lastQuestionDifficulty) {
-  // For now, this is a simplified version.
-  // It just picks a random question of the specified difficulty.
-  // A real implementation would have the complex rule-based logic.
-
   const nextQuestion = await Question.findOne({
     subject: session.subject,
-    difficulty: lastQuestionDifficulty, // Simplified logic for now
-    _id: { $nin: session.questionHistory }, // Exclude questions already asked
+    difficulty: lastQuestionDifficulty,
+    _id: { $nin: session.questionHistory },
   });
-
   return nextQuestion;
 }
 
-// --- Engine 2: Dynamic Persona ---
+// --- Engine 2: Persona ---
 function getDevilDialogue(trigger) {
-  const possibleLines = dialogueLines[trigger];
-  if (!possibleLines || possibleLines.length === 0) {
-    return { text: "...", audioUrl: null }; // Default silent response
-  }
-  const randomIndex = Math.floor(Math.random() * possibleLines.length);
-  return possibleLines[randomIndex];
+  const lines = dialogueLines[trigger] || [];
+  if (lines.length === 0) return { text: "...", audioUrl: null };
+  return lines[Math.floor(Math.random() * lines.length)];
 }
 
-// --- Engine 3: Answer Validator ---
-function validateAnswer(userAnswer, question) {
-  // This is a simplified validator. Code validation would be a separate, complex service.
-  let isCorrect = false;
+// --- Engine 3: Answer Validator (UPDATED) ---
+async function validateAnswer(userAnswer, question) {
   if (question.type === "mcq" || question.type === "integer") {
-    isCorrect = userAnswer.toString() === question.correctAnswer.toString();
+    return {
+      isCorrect: userAnswer.toString() === question.correctAnswer.toString(),
+    };
   }
-  // 'code' and 'description' types would require more complex validation.
-  return { isCorrect };
+  if (question.type === "code") {
+    // Delegate to the code execution service
+    return await executeCode(userAnswer, question.subject, question.testCases);
+  }
+  return { isCorrect: false, feedback: "Cannot validate this question type." };
 }
 
 export { selectNextQuestion, getDevilDialogue, validateAnswer };

@@ -23,7 +23,7 @@ const GauntletCard = ({ session, onStartGauntlet }) => {
           <p className="text-gray-400 mb-6">
             "Think you have what it takes? Choose your poison."
           </p>
-          {/* The onClick handler is now wired up correctly */}
+
           <button
             onClick={onStartGauntlet}
             className="bg-white hover:bg-red-500 text-gray-900 hover:text-white font-bold py-3 px-10 rounded-lg text-lg transition-all transform hover:scale-105"
