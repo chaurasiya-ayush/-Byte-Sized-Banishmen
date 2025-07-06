@@ -1,0 +1,73 @@
+[
+  {
+    "subject": "JavaScript",
+    "prompt": "What is the result of `5 + '5'` in JavaScript?",
+    "type": "mcq",
+    "difficulty": "easy",
+    "options": [
+      { "text": "10" },
+      { "text": "'55'" },
+      { "text": "55" },
+      { "text": "Error" }
+    ],
+    "correctAnswer": "1",
+    "subTopic": "Type Coercion"
+  },
+  {
+    "subject": "JavaScript",
+    "prompt": "Which keyword is used to declare a variable that cannot be reassigned?",
+    "type": "mcq",
+    "difficulty": "easy",
+    "options": [{ "text": "var" }, { "text": "let" }, { "text": "const" }],
+    "correctAnswer": "2",
+    "subTopic": "Variables"
+  },
+  {
+    "subject": "Python",
+    "prompt": "What is the data type of the result of `6 / 2` in Python 3?",
+    "type": "mcq",
+    "difficulty": "medium",
+    "options": [
+      { "text": "int" },
+      { "text": "float" },
+      { "text": "string" },
+      { "text": "double" }
+    ],
+    "correctAnswer": "1",
+    "subTopic": "Data Types"
+  },
+  {
+    "subject": "Python",
+    "prompt": "Write a function `multiply(a, b)` that returns the product of two numbers.",
+    "type": "code",
+    "difficulty": "easy",
+    "testCases": [
+      { "input": "3, 4", "output": "12" },
+      { "input": "5, 0", "output": "0" }
+    ],
+    "subTopic": "Functions"
+  },
+  {
+    "subject": "Data Structures",
+    "prompt": "Which data structure operates on a Last-In, First-Out (LIFO) principle?",
+    "type": "mcq",
+    "difficulty": "medium",
+    "options": [
+      { "text": "Queue" },
+      { "text": "Linked List" },
+      { "text": "Stack" },
+      { "text": "Tree" }
+    ],
+    "correctAnswer": "2",
+    "subTopic": "Fundamentals"
+  },
+  {
+    "subject": "Data Structures",
+    "prompt": "What is the time complexity for accessing an element in a hash table, on average?",
+    "type": "mcq",
+    "difficulty": "hard",
+    "options": [{ "text": "O(1)" }, { "text": "O(n)" }, { "text": "O(log n)" }],
+    "correctAnswer": "0",
+    "subTopic": "Complexity"
+  }
+]
