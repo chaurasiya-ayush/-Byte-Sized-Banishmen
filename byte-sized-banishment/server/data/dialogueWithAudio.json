@@ -1,0 +1,32 @@
+{
+  "CORRECT_ANSWER_EASY": [
+    { "text": "Fine, whatever. That was an easy one anyway.", "audioUrl": null },
+    { "text": "Don't get used to it.", "audioUrl": null }
+  ],
+  "CORRECT_ANSWER_MEDIUM": [
+    { "text": "Hmph. A lucky guess, mortal.", "audioUrl": null },
+    { "text": "Not bad... for a human.", "audioUrl": null }
+  ],
+  "CORRECT_ANSWER_HARD": [
+    { "text": "Impressive. But your luck will run out.", "audioUrl": null },
+    { "text": "You may have won the battle, but the war is far from over.", "audioUrl": null }
+  ],
+  "INCORRECT_ANSWER_EASY": [
+    { "text": "Pathetic! You call that an attempt?", "audioUrl": null },
+    { "text": "Even a goblin could answer that.", "audioUrl": null }
+  ],
+  "INCORRECT_ANSWER_MEDIUM": [
+    { "text": "Are you even trying?", "audioUrl": null },
+    { "text": "My disappointment is immeasurable.", "audioUrl": null }
+  ],
+  "INCORRECT_ANSWER_HARD": [
+    { "text": "And so, your confidence crumbles to dust. As expected.", "audioUrl": null },
+    { "text": "Perhaps this is too much for your feeble mind.", "audioUrl": null }
+  ],
+  "GAME_OVER": [
+    { "text": "Game over. Your soul is mine.", "audioUrl": null }
+  ],
+  "SESSION_WIN": [
+    { "text": "You've survived... for now. Don't think this is over.", "audioUrl": null }
+  ]
+}

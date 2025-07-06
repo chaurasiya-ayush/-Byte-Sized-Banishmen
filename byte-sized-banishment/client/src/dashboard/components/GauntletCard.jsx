@@ -1,6 +1,6 @@
 import React from "react";
 
-const GauntletCard = ({ session }) => {
+const GauntletCard = ({ session, onStartGauntlet }) => {
   return (
     <div className="bg-gray-800 bg-opacity-70 backdrop-blur-sm border border-gray-700 rounded-2xl p-8 text-center shadow-lg flex flex-col justify-center items-center h-full">
       {session.active ? (
@@ -23,7 +23,11 @@ const GauntletCard = ({ session }) => {
           <p className="text-gray-400 mb-6">
             "Think you have what it takes? Choose your poison."
           </p>
-          <button className="bg-white hover:bg-red-500 text-gray-900 hover:text-white font-bold py-3 px-10 rounded-lg text-lg transition-all transform hover:scale-105">
+          {/* The onClick handler is now wired up correctly */}
+          <button
+            onClick={onStartGauntlet}
+            className="bg-white hover:bg-red-500 text-gray-900 hover:text-white font-bold py-3 px-10 rounded-lg text-lg transition-all transform hover:scale-105"
+          >
             Begin a New Gauntlet
           </button>
         </>

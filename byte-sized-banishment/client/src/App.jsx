@@ -1,13 +1,14 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { AuthProvider } from "./context/AuthContext";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
+import GauntletPage from "./pages/gauntlet/GauntletPage"; // <-- IMPORT NEW PAGE
 import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
   return (
-    <AuthProvider>
+    <>
       <Toaster position="top-center" reverseOrder={false} />
       <Router>
         <Routes>
@@ -20,9 +21,18 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/gauntlet"
+            element={
+              <ProtectedRoute>
+                <GauntletPage />
+              </ProtectedRoute>
+            }
+          />{" "}
+          {/* <-- ADD NEW ROUTE */}
         </Routes>
       </Router>
-    </AuthProvider>
+    </>
   );
 }
 
