@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
-import AuthModal from "../components/AuthModal"; // Assuming AuthModal is in /src/components
+import AuthModal from "../components/AuthModal"; 
 
 const LandingPage = () => {
   const [showModal, setShowModal] = useState(false);
