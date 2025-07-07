@@ -4,7 +4,8 @@ import { Toaster } from "react-hot-toast";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import GauntletPage from "./pages/gauntlet/GauntletPage";
-import SkillTreePage from "./pages/skill-tree/SkillTreePage"; // <-- IMPORT NEW PAGE
+import SkillTreePage from "./pages/skill-tree/SkillTreePage";
+import LeaderboardPage from "./pages/LeaderboardPage"; // <-- IMPORT NEW PAGE
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -35,6 +36,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <SkillTreePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leaderboard"
+            element={
+              <ProtectedRoute>
+                <LeaderboardPage />
               </ProtectedRoute>
             }
           />{" "}

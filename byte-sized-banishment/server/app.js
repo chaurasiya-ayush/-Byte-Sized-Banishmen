@@ -5,7 +5,8 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import gauntletRoutes from "./routes/gauntletRoutes.js";
-import skillTreeRoutes from "./routes/skillTreeRoutes.js"; // <-- IMPORT NEW ROUTES
+import skillTreeRoutes from "./routes/skillTreeRoutes.js";
+import leaderboardRoutes from "./routes/leaderboardRoutes.js"; // <-- IMPORT NEW ROUTES
 import config from "./config/index.js";
 
 dotenv.config();
@@ -18,7 +19,8 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/gauntlet", gauntletRoutes);
-app.use("/api/skill-tree", skillTreeRoutes); // <-- USE NEW ROUTES
+app.use("/api/skill-tree", skillTreeRoutes);
+app.use("/api/leaderboard", leaderboardRoutes); // <-- USE NEW ROUTES
 
 app.get("/", (req, res) => res.send("Byte-Sized Banishment API is running..."));
 const PORT = config.PORT;

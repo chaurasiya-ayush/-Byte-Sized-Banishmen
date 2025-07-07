@@ -155,20 +155,23 @@ const SkillTreeCard = () => (
 );
 
 const LeaderboardCard = () => (
-  <motion.div
-    className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-6 flex items-center gap-4 hover:border-yellow-500 transition-colors duration-300 cursor-pointer"
-    whileHover={{ y: -5 }}
-  >
-    <FaTrophy className="text-4xl text-yellow-400" />
-    <div>
-      <h3 className="font-bold text-white text-lg">League of the Damned</h3>
-      <p className="text-sm text-gray-400">
-        See how you rank against other souls.
-      </p>
-    </div>
-  </motion.div>
+  <Link to="/leaderboard">
+    {" "}
+    {/* <-- WRAP WITH LINK */}
+    <motion.div
+      className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-6 flex items-center gap-4 hover:border-yellow-500 transition-colors duration-300 cursor-pointer"
+      whileHover={{ y: -5 }}
+    >
+      <FaTrophy className="text-4xl text-yellow-400" />
+      <div>
+        <h3 className="font-bold text-white text-lg">League of the Damned</h3>
+        <p className="text-sm text-gray-400">
+          See how you rank against other souls.
+        </p>
+      </div>
+    </motion.div>
+  </Link>
 );
-
 const Sidebar = ({ dailyChallenge, weakestLink, activeEffect }) => (
   <div className="lg:col-span-1 space-y-6">
     {activeEffect && activeEffect.type && (
