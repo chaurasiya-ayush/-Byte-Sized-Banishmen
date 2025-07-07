@@ -1,8 +1,7 @@
-import Question from "../models/questionModel.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-
+import Question from "../models/questionModel.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const dialoguePath = path.join(__dirname, "../data/dialogueWithAudio.json");
@@ -87,4 +86,29 @@ function validateAnswer(userAnswer, question) {
   return { isCorrect };
 }
 
-export { selectNextQuestion, getDevilDialogue, validateAnswer };
+// --- NEW "WEAKEST LINK" ANALYZER ---
+function findWeakestLink(userProgress) {
+  let weakestTopic = "Nothing Yet...";
+  let lowestScore = 1; // Start with a perfect score
+
+  // Iterate over the user's progress map
+  for (const [key, progress] of userProgress.entries()) {
+    // We only consider topics the user has attempted at least 3 times
+    if (progress.totalAttempted >= 3) {
+      const successRate = progress.correct / progress.totalAttempted;
+      if (successRate < lowestScore) {
+        lowestScore = successRate;
+        // The key is "Subject-SubTopic", so we split to get the sub-topic name
+        weakestTopic = key.split("-")[1] || "a specific area";
+      }
+    }
+  }
+  return weakestTopic;
+}
+
+export {
+  selectNextQuestion,
+  getDevilDialogue,
+  validateAnswer,
+  findWeakestLink,
+};
