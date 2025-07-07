@@ -7,6 +7,7 @@ import {
   validateAnswer,
 } from "../services/aiServices.js";
 
+// --- Helper Functions ---
 const XP_VALUES = { easy: 10, medium: 25, hard: 50 };
 const RANK_THRESHOLDS = {
   1: "Novice",
@@ -22,11 +23,13 @@ const getRankForLevel = (level) => {
   return currentRank;
 };
 
+// --- Controller Functions ---
+
 export const startGauntlet = async (req, res) => {
-  // This function remains the same
   const { subject, difficulty } = req.body;
   try {
     const session = new GauntletSession({ userId: req.user._id, subject });
+    // For the first question, we treat it as if the last question was one level below.
     const mockLastQuestion = {
       difficulty: difficulty === "easy" ? "easy" : "medium",
     };
@@ -43,6 +46,7 @@ export const startGauntlet = async (req, res) => {
     await session.save();
     res.status(201).json({ sessionId: session._id, question: firstQuestion });
   } catch (error) {
+    console.error("Error starting gauntlet:", error);
     res.status(500).json({ message: "Server Error" });
   }
 };
@@ -54,7 +58,11 @@ export const submitAnswer = async (req, res) => {
     const question = await Question.findById(questionId);
     const user = await User.findById(req.user._id);
 
-    if (!session || session.userId.toString() !== req.user._id.toString())
+    if (!session || !question || !user)
+      return res
+        .status(404)
+        .json({ message: "Session, question, or user not found." });
+    if (session.userId.toString() !== req.user._id.toString())
       return res.status(401).json({ message: "Not authorized." });
     if (!session.isActive)
       return res.status(400).json({ message: "This session is over." });
@@ -62,12 +70,36 @@ export const submitAnswer = async (req, res) => {
     const { isCorrect } = validateAnswer(answer, question);
     let devilDialogue;
 
-    // --- START of Blessings & Curses Logic ---
+    // --- START of Progress Tracking Logic ---
+    if (question.subTopic) {
+      const progressKey = `${question.subject}-${question.subTopic}`;
+      if (!user.progress.has(progressKey)) {
+        user.progress.set(progressKey, {
+          correct: 0,
+          totalAttempted: 0,
+          mastered: false,
+        });
+      }
+      const subTopicProgress = user.progress.get(progressKey);
+      subTopicProgress.totalAttempted += 1;
+
+      if (isCorrect) {
+        subTopicProgress.correct += 1;
+        if (
+          subTopicProgress.totalAttempted >= 5 &&
+          subTopicProgress.correct / subTopicProgress.totalAttempted > 0.8
+        ) {
+          subTopicProgress.mastered = true;
+        }
+      }
+      user.progress.set(progressKey, subTopicProgress);
+    }
+    // --- END of Progress Tracking Logic ---
+
     if (isCorrect) {
       session.correctStreak += 1;
       let xpGained = XP_VALUES[question.difficulty] || 10;
 
-      // 1. Check for and apply active effect
       if (
         user.activeEffect &&
         user.activeEffect.type &&
@@ -84,20 +116,19 @@ export const submitAnswer = async (req, res) => {
           name: null,
           modifier: 1,
           expiresAt: null,
-        }; // Clear expired effect
+        };
       }
 
       user.xp += Math.round(xpGained);
       user.correctAnswers += 1;
       session.score += Math.round(xpGained);
 
-      // 2. Check for new Blessing trigger
       if (session.correctStreak === 5 && !user.activeEffect.type) {
         user.activeEffect = {
           type: "blessing",
           name: "Feverish Focus",
-          modifier: 1.5, // 1.5x XP
-          expiresAt: new Date(Date.now() + 5 * 60 * 1000), // Expires in 5 minutes
+          modifier: 1.5,
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
         };
         devilDialogue = {
           text: "A 5-win streak... Impressive. You've been blessed with Feverish Focus, granting 1.5x XP for 5 minutes.",
@@ -115,7 +146,6 @@ export const submitAnswer = async (req, res) => {
       }
     } else {
       session.strikesLeft -= 1;
-      // 3. Check for new Curse trigger
       if (
         session.correctStreak === 0 &&
         session.strikesLeft === 1 &&
@@ -124,8 +154,8 @@ export const submitAnswer = async (req, res) => {
         user.activeEffect = {
           type: "curse",
           name: "Crippling Doubt",
-          modifier: 0.5, // Half XP
-          expiresAt: new Date(Date.now() + 5 * 60 * 1000), // Expires in 5 minutes
+          modifier: 0.5,
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
         };
         devilDialogue = {
           text: "You're faltering. You've been cursed with Crippling Doubt! Your XP gains are halved for 5 minutes.",
@@ -140,7 +170,6 @@ export const submitAnswer = async (req, res) => {
         : `INCORRECT_ANSWER_${question.difficulty.toUpperCase()}`;
       devilDialogue = getDevilDialogue(trigger);
     }
-    // --- END of Blessings & Curses Logic ---
 
     if (session.strikesLeft <= 0) {
       session.isActive = false;

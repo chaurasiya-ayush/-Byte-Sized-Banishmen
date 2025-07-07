@@ -5,8 +5,18 @@ const activeEffectSchema = new mongoose.Schema(
   {
     type: { type: String, enum: ["blessing", "curse", null], default: null },
     name: { type: String },
-    modifier: { type: Number, default: 1 }, // e.g., 1.5 for 1.5x XP, 0.5 for half
+    modifier: { type: Number, default: 1 },
     expiresAt: { type: Date },
+  },
+  { _id: false }
+);
+
+// This new schema will store progress for each sub-topic
+const subTopicProgressSchema = new mongoose.Schema(
+  {
+    correct: { type: Number, default: 0 },
+    totalAttempted: { type: Number, default: 0 },
+    mastered: { type: Boolean, default: false },
   },
   { _id: false }
 );
@@ -29,7 +39,15 @@ const userSchema = new mongoose.Schema(
     correctAnswers: { type: Number, default: 0 },
     dailyStreak: { type: Number, default: 0 },
     lastLogin: { type: Date, default: Date.now },
-    activeEffect: { type: activeEffectSchema, default: () => ({}) }, // <-- NEW FIELD
+    activeEffect: { type: activeEffectSchema, default: () => ({}) },
+    // --- NEW FIELD FOR SKILL TREE ---
+    // Using a Map to store progress for each sub-topic dynamically.
+    // The key will be the subject+subTopic name (e.g., "JavaScript-Arrays")
+    progress: {
+      type: Map,
+      of: subTopicProgressSchema,
+      default: {},
+    },
   },
   { timestamps: true }
 );

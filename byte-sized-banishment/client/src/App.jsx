@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
-import GauntletPage from "./pages/gauntlet/GauntletPage"; // <-- IMPORT NEW PAGE
+import GauntletPage from "./pages/gauntlet/GauntletPage";
+import SkillTreePage from "./pages/skill-tree/SkillTreePage"; // <-- IMPORT NEW PAGE
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -26,6 +27,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <GauntletPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/skill-tree"
+            element={
+              <ProtectedRoute>
+                <SkillTreePage />
               </ProtectedRoute>
             }
           />{" "}
