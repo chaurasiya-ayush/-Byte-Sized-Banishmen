@@ -18,7 +18,13 @@ const GauntletPage = () => {
   const [userAnswer, setUserAnswer] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState(null);
-  const [stats, setStats] = useState({ strikesLeft: 3, score: 0 });
+  // Initialize with a more complete stats object
+  const [stats, setStats] = useState({
+    strikesLeft: 3,
+    score: 0,
+    level: 1,
+    rank: "Novice",
+  });
 
   useEffect(() => {
     if (!session) {
@@ -27,12 +33,9 @@ const GauntletPage = () => {
     }
   }, [session, navigate]);
 
-  // This effect sets the initial userAnswer when the question changes.
-  // For code questions, it provides a function template.
   useEffect(() => {
     if (currentQuestion) {
       if (currentQuestion.type === "code") {
-        // Extract function name from prompt for a better template
         const match = currentQuestion.prompt.match(/`(\w+)\s*\([^)]*\)`/);
         const functionName = match ? match[1] : "yourFunction";
         setUserAnswer(`function ${functionName}() {\n  // Your code here\n}`);
@@ -74,15 +77,18 @@ const GauntletPage = () => {
         return;
       }
 
-      if (data.result === "correct") {
+      // Check for the special level up dialogue
+      if (data.feedback.text.includes("Level")) {
+        toast.success(data.feedback.text, { duration: 4000, icon: "🎉" });
+      } else if (data.result === "correct") {
         toast.success("Correct!", { duration: 1500 });
       } else {
         toast.error("Incorrect!", { duration: 1500 });
       }
 
       setCurrentQuestion(data.nextQuestion);
-      setStats(data.updatedStats);
-      // The userAnswer will be reset by the useEffect hook when currentQuestion changes
+      setStats(data.updatedStats); // Update the entire stats object
+      // userAnswer is reset by the useEffect above
     } catch (error) {
       toast.error(error.response?.data?.message || "An error occurred.");
       navigate("/dashboard");

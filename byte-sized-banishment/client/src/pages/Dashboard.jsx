@@ -5,9 +5,9 @@ import { useNavigate } from "react-router-dom";
 import StatsPanel from "../dashboard/components/StatsPanel";
 import GauntletCard from "../dashboard/components/GauntletCard";
 import DailyChallenges from "../dashboard/components/DailyChallenges";
+import ActiveEffectPanel from "../dashboard/components/ActiveEffectPanel";
 import GauntletSetupModal from "../components/GauntletSetupModal";
 
-// --- PLACEHOLDER ASSET PATHS ---
 const backgroundVideo = "/src/assets/background.mp4";
 const logoImage = "/src/assets/logo.png";
 const themeMusic = "/src/assets/theme.mp3";
@@ -27,18 +27,17 @@ const Dashboard = () => {
         const token = localStorage.getItem("authToken");
         if (!token)
           throw new Error("No auth token found, please log in again.");
-        const config = {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        };
+        const config = { headers: { Authorization: `Bearer ${token}` } };
         const { data } = await axios.get(
           "http://localhost:5000/api/user/dashboard",
           config
         );
-        if (data.success) setDashboardData(data);
-        else throw new Error(data.message || "Failed to fetch data");
+
+        if (data.success) {
+          setDashboardData(data);
+        } else {
+          throw new Error(data.message || "Failed to fetch data");
+        }
       } catch (err) {
         console.error("Dashboard fetch error:", err);
         setError(err.message || "Could not connect to the server.");
@@ -86,11 +85,8 @@ const Dashboard = () => {
         className="absolute z-0 w-auto min-w-full min-h-full max-w-none opacity-20"
       >
         <source src={backgroundVideo} type="video/mp4" />
-        Your browser does not support the video tag.
       </video>
       <audio ref={audioRef} src={themeMusic} loop />
-
-      {/* The modal is now correctly placed and controlled */}
       <GauntletSetupModal
         showModal={showGauntletModal}
         setShowModal={setShowGauntletModal}
@@ -124,6 +120,10 @@ const Dashboard = () => {
         <main className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 space-y-6">
             {dashboardData && <StatsPanel stats={dashboardData.stats} />}
+            {/* THIS LINE WAS MISSING AND IS NOW FIXED */}
+            {dashboardData && (
+              <ActiveEffectPanel effect={dashboardData.stats.activeEffect} />
+            )}
             {dashboardData && (
               <DailyChallenges
                 challenge={dashboardData.dailyChallenge}
@@ -133,7 +133,6 @@ const Dashboard = () => {
           </div>
           <div className="lg:col-span-2 space-y-6">
             {dashboardData && (
-              // The onStartGauntlet prop is now passed to the card
               <GauntletCard
                 session={dashboardData.activeSession}
                 onStartGauntlet={() => setShowGauntletModal(true)}
