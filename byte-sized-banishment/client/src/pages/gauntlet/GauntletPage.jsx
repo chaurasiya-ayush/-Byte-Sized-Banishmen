@@ -66,7 +66,7 @@ const GauntletPage = () => {
         answer: userAnswer,
       };
       const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/gauntlet/submit`,
+        "http://localhost:5000/api/gauntlet/submit",
         payload,
         config
       );

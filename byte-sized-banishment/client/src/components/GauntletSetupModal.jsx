@@ -21,7 +21,7 @@ const GauntletSetupModal = ({ showModal, setShowModal }) => {
       const token = localStorage.getItem("authToken");
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/gauntlet/start`,
+        "http://localhost:5000/api/gauntlet/start",
         { subject, difficulty },
         config
       );

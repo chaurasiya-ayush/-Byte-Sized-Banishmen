@@ -138,7 +138,7 @@ const FindPlayers = ({ token }) => {
     if (query.trim().length > 2) {
       const search = async () => {
         const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/friends/search?q=${query}`,
+          `http://localhost:5000/api/friends/search?q=${query}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setResults(data);
@@ -152,7 +152,7 @@ const FindPlayers = ({ token }) => {
 
   const handleSendRequest = async (userId) => {
     await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/friends/request/${userId}`,
+      `http://localhost:5000/api/friends/request/${userId}`,
       {},
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -186,7 +186,7 @@ const FindPlayers = ({ token }) => {
 const FriendRequests = ({ requests, token, onUpdate }) => {
   const handleAccept = async (userId) => {
     await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/friends/accept/${userId}`,
+      `http://localhost:5000/api/friends/accept/${userId}`,
       {},
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -194,7 +194,7 @@ const FriendRequests = ({ requests, token, onUpdate }) => {
   };
   const handleDecline = async (userId) => {
     await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/friends/decline/${userId}`,
+      `http://localhost:5000/api/friends/decline/${userId}`,
       {},
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -256,10 +256,10 @@ const SocialPage = () => {
     setLoading(true);
     try {
       const [friendsRes, duelsRes] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL}/api/friends/`, {
+        axios.get("http://localhost:5000/api/friends/", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/duels/`, {
+        axios.get("http://localhost:5000/api/duels/", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);

@@ -1,8 +1,8 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
-import AuthModal from "../components/AuthModal";
+import AuthModal from "../components/AuthModal"; 
 
 const LandingPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -47,7 +47,6 @@ const LandingPage = () => {
           style={{ transform: "rotate(45deg)" }}
         ></div>
       </div>
-
       <AnimatePresence>
         {showModal && <AuthModal setShowModal={setShowModal} />}
       </AnimatePresence>
