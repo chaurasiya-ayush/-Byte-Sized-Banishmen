@@ -1,7 +1,8 @@
 import GauntletSession from '../models/gauntletSessionModel.js';
 import User from '../models/userModel.js';
 import Question from '../models/questionModel.js';
-import { selectNextQuestion, getDevilDialogue, validateAnswer } from '../services/aiServices.js';
+// FIXED: Added findWeakestLink to the import list.
+import { selectNextQuestion, getDevilDialogue, validateAnswer, findWeakestLink } from '../services/aiServices.js';
 // This is the new, more robust way to import JSON files for Vercel.
 import penances from '../data/penance.json' with { type: 'json' };
 
@@ -34,7 +35,46 @@ export const startGauntlet = async (req, res) => {
 };
 
 export const startWeaknessDrill = async (req, res) => {
-    // ... (This function remains correct)
+    const userId = req.user._id;
+    try {
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found." });
+
+        const weakness = findWeakestLink(user.progress);
+
+        if (!weakness) {
+            return res.status(400).json({ message: "The Devil hasn't found your weakness yet. Play more trials!" });
+        }
+
+        const drillQuestions = await Question.find({
+            subject: weakness.subject,
+            subTopic: weakness.subTopic
+        }).limit(5);
+
+        if (drillQuestions.length === 0) {
+            return res.status(404).json({ message: `Could not find any drill questions for ${weakness.subTopic}.` });
+        }
+        
+        const session = new GauntletSession({ 
+            userId, 
+            subject: `Weakness Drill: ${weakness.subTopic}`
+        });
+        
+        const firstQuestion = drillQuestions[0];
+        session.questionHistory.push(firstQuestion._id);
+        await session.save();
+
+        res.status(201).json({
+            message: `Weakness Drill started!`,
+            sessionId: session._id,
+            question: firstQuestion,
+            drillQuestionIds: drillQuestions.map(q => q._id) 
+        });
+
+    } catch (error) {
+        console.error("Error starting weakness drill:", error);
+        res.status(500).json({ message: "Server Error" });
+    }
 };
 
 export const submitAnswer = async (req, res) => {
@@ -55,7 +95,6 @@ export const submitAnswer = async (req, res) => {
             session.correctStreak += 1;
             let xpGained = XP_VALUES[question.difficulty] || 10;
             
-            // Apply active blessing/curse modifier
             if (user.activeEffect && user.activeEffect.type && user.activeEffect.expiresAt > new Date()) {
                 xpGained *= user.activeEffect.modifier;
             } else if (user.activeEffect && user.activeEffect.type && user.activeEffect.expiresAt <= new Date()) {
@@ -66,7 +105,6 @@ export const submitAnswer = async (req, res) => {
             user.correctAnswers += 1;
             session.score += Math.round(xpGained);
 
-            // Check for new Blessing trigger
             if (session.correctStreak === 5 && !user.activeEffect.type) {
                 user.activeEffect = {
                     type: "blessing",
@@ -77,7 +115,6 @@ export const submitAnswer = async (req, res) => {
                 devilDialogue = { text: "A 5-win streak... Impressive. You've been blessed with Feverish Focus, granting 1.5x XP for 5 minutes." };
             }
             
-            // Check for level up
             if (user.xp >= user.xpToNextLevel) {
                  user.level += 1;
                  user.xp -= user.xpToNextLevel;
@@ -89,7 +126,6 @@ export const submitAnswer = async (req, res) => {
             session.strikesLeft -= 1;
             session.correctStreak = 0;
             
-            // Check for new Curse trigger
             if (session.correctStreak === 0 && session.strikesLeft === 1 && !user.activeEffect.type) {
                 user.activeEffect = {
                     type: "curse",
