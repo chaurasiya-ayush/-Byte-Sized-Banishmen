@@ -11,18 +11,19 @@ import {
   FaSkullCrossbones,
   FaTrophy,
   FaTree,
+  FaUsers,
 } from "react-icons/fa";
 import { GiLevelEndFlag, GiCrown, GiFist } from "react-icons/gi";
 import GauntletSetupModal from "../components/GauntletSetupModal";
-import { useCountdown } from "../hooks/useCountdown"; // Assuming you have this hook
+import { useCountdown } from "../hooks/useCountdown";
 
 // --- PLACEHOLDER ASSETS ---
 const backgroundVideo = "/src/assets/background.mp4";
 const logoImage = "/src/assets/logo.png";
 const themeMusic = "/src/assets/theme.mp3";
-const gauntletCardBg = "/src/assets/gauntlet-bg.jpg"; // Placeholder for a cool background image
+const gauntletCardBg = "/src/assets/gauntlet-bg.jpg";
 
-// --- CHILD COMPONENTS (Redesigned for the new layout) ---
+// --- CHILD COMPONENTS ---
 
 const Header = ({ user, onLogout }) => (
   <header className="flex justify-between items-center mb-8">
@@ -34,7 +35,9 @@ const Header = ({ user, onLogout }) => (
         </h1>
         <p className="text-sm text-gray-400">
           Welcome back,{" "}
-          <span className="text-red-400 font-semibold">{user?.email}</span>
+          <span className="text-red-400 font-semibold">
+            {user?.username || user?.email}
+          </span>
         </p>
       </div>
     </div>
@@ -50,7 +53,6 @@ const Header = ({ user, onLogout }) => (
 const StatsCard = ({ stats }) => {
   const xpPercentage =
     stats.xpToNextLevel > 0 ? (stats.xp / stats.xpToNextLevel) * 100 : 0;
-
   const statItems = [
     {
       icon: <GiCrown className="text-yellow-400" />,
@@ -156,8 +158,6 @@ const SkillTreeCard = () => (
 
 const LeaderboardCard = () => (
   <Link to="/leaderboard">
-    {" "}
-    {/* <-- WRAP WITH LINK */}
     <motion.div
       className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-6 flex items-center gap-4 hover:border-yellow-500 transition-colors duration-300 cursor-pointer"
       whileHover={{ y: -5 }}
@@ -172,7 +172,14 @@ const LeaderboardCard = () => (
     </motion.div>
   </Link>
 );
-const Sidebar = ({ dailyChallenge, weakestLink, activeEffect }) => (
+
+const Sidebar = ({
+  dailyChallenge,
+  weakestLink,
+  activeEffect,
+  onStartWeaknessDrill,
+  isDrillLoading,
+}) => (
   <div className="lg:col-span-1 space-y-6">
     {activeEffect && activeEffect.type && (
       <ActiveEffectPanel effect={activeEffect} />
@@ -189,15 +196,29 @@ const Sidebar = ({ dailyChallenge, weakestLink, activeEffect }) => (
         <p className="text-sm text-gray-300">{dailyChallenge?.description}</p>
       </div>
       <div className="border-t border-gray-700 pt-4">
-        {/* FIXED: Added the FaSkullCrossbones icon here */}
         <div className="flex items-center gap-3 mb-2">
           <FaSkullCrossbones className="text-2xl text-gray-400" />
           <h4 className="font-bold text-white">Your Weakest Link</h4>
         </div>
-        <p className="text-sm text-gray-300">
+        <p className="text-sm text-gray-300 mb-4">
           The Devil mocks your struggles with{" "}
-          <span className="font-bold text-red-400">{weakestLink}</span>.
+          <span className="font-bold text-red-400">
+            {weakestLink || "Nothing Yet"}
+          </span>
+          .
         </p>
+        {/* --- NEW BUTTON --- */}
+        <button
+          onClick={onStartWeaknessDrill}
+          disabled={
+            isDrillLoading ||
+            !weakestLink ||
+            weakestLink.includes("Nothing Yet")
+          }
+          className="w-full bg-gray-700 hover:bg-red-700 border border-red-500/50 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isDrillLoading ? "Analyzing..." : "Confront Your Demons"}
+        </button>
       </div>
     </div>
   </div>
@@ -238,6 +259,22 @@ const ActiveEffectPanel = ({ effect }) => {
   );
 };
 
+const SocialCard = () => (
+  <Link to="/friends">
+    <motion.div
+      className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-6 flex items-center gap-4 hover:border-blue-500 transition-colors duration-300 cursor-pointer"
+      whileHover={{ y: -5 }}
+    >
+      <FaUsers className="text-4xl text-blue-400" />
+      <div>
+        <h3 className="font-bold text-white text-lg">The Soul-Binding</h3>
+        <p className="text-sm text-gray-400">
+          Manage friends and challenge rivals.
+        </p>
+      </div>
+    </motion.div>
+  </Link>
+);
 // --- Main Dashboard Component ---
 
 const Dashboard = () => {
@@ -245,6 +282,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isDrillLoading, setIsDrillLoading] = useState(false); // <-- NEW state for drill button
   const [error, setError] = useState("");
   const audioRef = useRef(null);
   const [showGauntletModal, setShowGauntletModal] = useState(false);
@@ -283,6 +321,28 @@ const Dashboard = () => {
     navigate("/");
   };
 
+  // --- NEW FUNCTION to handle starting the weakness drill ---
+  const handleStartWeaknessDrill = async () => {
+    setIsDrillLoading(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const { data } = await axios.post(
+        "http://localhost:5000/api/gauntlet/start-weakness-drill",
+        {},
+        config
+      );
+
+      navigate("/gauntlet", { state: { sessionData: data } });
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Could not start the drill."
+      );
+    } finally {
+      setIsDrillLoading(false);
+    }
+  };
+
   if (loading)
     return (
       <div className="bg-gray-900 text-white min-h-screen flex justify-center items-center">
@@ -307,8 +367,6 @@ const Dashboard = () => {
         <source src={backgroundVideo} type="video/mp4" />
       </video>
       <audio ref={audioRef} src={themeMusic} loop />
-
-      {/* FIXED: The modal is now correctly wrapped with AnimatePresence for exit animations */}
       <AnimatePresence>
         {showGauntletModal && (
           <GauntletSetupModal
@@ -322,7 +380,6 @@ const Dashboard = () => {
         <Header user={currentUser} onLogout={handleLogout} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column */}
           <div className="lg:col-span-1 space-y-6">
             {dashboardData && <StatsCard stats={dashboardData.stats} />}
             {dashboardData && (
@@ -330,11 +387,12 @@ const Dashboard = () => {
                 dailyChallenge={dashboardData.dailyChallenge}
                 weakestLink={dashboardData.weakestLink}
                 activeEffect={dashboardData.stats.activeEffect}
+                onStartWeaknessDrill={handleStartWeaknessDrill}
+                isDrillLoading={isDrillLoading}
               />
             )}
           </div>
 
-          {/* Right Column */}
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 grid-rows-2 gap-6">
             {dashboardData && (
               <GauntletCard
@@ -343,6 +401,7 @@ const Dashboard = () => {
             )}
             <SkillTreeCard />
             <LeaderboardCard />
+            <SocialCard />
           </div>
         </div>
       </div>

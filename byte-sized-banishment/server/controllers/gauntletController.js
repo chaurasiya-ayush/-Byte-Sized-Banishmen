@@ -5,24 +5,10 @@ import {
   selectNextQuestion,
   getDevilDialogue,
   validateAnswer,
+  findWeakestLink,
 } from "../services/aiServices.js";
-import fs from "fs"; // Import the file system module
-import path from "path";
-import { fileURLToPath } from "url";
 
-// --- Load Penance Data ---
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const penancePath = path.join(__dirname, "../data/penance.json");
-let penances = [];
-try {
-  const rawData = fs.readFileSync(penancePath);
-  penances = JSON.parse(rawData);
-} catch (error) {
-  console.error("Could not read or parse penance.json.", error);
-}
-
-// ... (Helper functions like getRankForLevel remain the same)
+// --- Helper Functions ---
 const XP_VALUES = { easy: 10, medium: 25, hard: 50 };
 const RANK_THRESHOLDS = {
   1: "Novice",
@@ -38,8 +24,9 @@ const getRankForLevel = (level) => {
   return currentRank;
 };
 
+// --- Controller Functions ---
+
 export const startGauntlet = async (req, res) => {
-  // This function remains the same
   const { subject, difficulty } = req.body;
   try {
     const session = new GauntletSession({ userId: req.user._id, subject });
@@ -59,6 +46,7 @@ export const startGauntlet = async (req, res) => {
     await session.save();
     res.status(201).json({ sessionId: session._id, question: firstQuestion });
   } catch (error) {
+    console.error("Error starting gauntlet:", error);
     res.status(500).json({ message: "Server Error" });
   }
 };
@@ -82,36 +70,72 @@ export const submitAnswer = async (req, res) => {
     const { isCorrect } = validateAnswer(answer, question);
     let devilDialogue;
 
-    // ... (Progress Tracking, Blessings/Curses, and XP logic remains the same)
     if (isCorrect) {
-      // ...
+      session.correctStreak += 1;
+      let xpGained = XP_VALUES[question.difficulty] || 10;
+
+      if (
+        user.activeEffect &&
+        user.activeEffect.type &&
+        user.activeEffect.expiresAt > new Date()
+      ) {
+        xpGained *= user.activeEffect.modifier;
+      } else if (
+        user.activeEffect &&
+        user.activeEffect.type &&
+        user.activeEffect.expiresAt <= new Date()
+      ) {
+        user.activeEffect = {
+          type: null,
+          name: null,
+          modifier: 1,
+          expiresAt: null,
+        };
+      }
+
+      user.xp += Math.round(xpGained);
+      user.correctAnswers += 1;
+      session.score += Math.round(xpGained);
+
+      if (session.correctStreak === 5 && !user.activeEffect.type) {
+        user.activeEffect = {
+          type: "blessing",
+          name: "Feverish Focus",
+          modifier: 1.5,
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        };
+        devilDialogue = {
+          text: "A 5-win streak... Impressive. You've been blessed with Feverish Focus, granting 1.5x XP for 5 minutes.",
+        };
+      }
+
+      if (user.xp >= user.xpToNextLevel) {
+        user.level += 1;
+        user.xp -= user.xpToNextLevel;
+        user.xpToNextLevel = user.level * 150;
+        user.rank = getRankForLevel(user.level);
+        devilDialogue = {
+          text: `You've reached Level ${user.level}! Your new rank is ${user.rank}. Don't get cocky.`,
+        };
+      }
     } else {
       session.strikesLeft -= 1;
+      if (
+        session.correctStreak === 0 &&
+        session.strikesLeft === 1 &&
+        !user.activeEffect.type
+      ) {
+        user.activeEffect = {
+          type: "curse",
+          name: "Crippling Doubt",
+          modifier: 0.5,
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        };
+        devilDialogue = {
+          text: "You're faltering. You've been cursed with Crippling Doubt! Your XP gains are halved for 5 minutes.",
+        };
+      }
       session.correctStreak = 0;
-      // ...
-    }
-
-    // --- GAME OVER LOGIC WITH PENANCE ---
-    if (session.strikesLeft <= 0) {
-      session.isActive = false;
-      await session.save();
-      await user.save();
-
-      // Randomly select a penance
-      const randomPenance =
-        penances[Math.floor(Math.random() * penances.length)];
-
-      return res.json({
-        result: "incorrect",
-        feedback: getDevilDialogue("GAME_OVER"),
-        isGameOver: true,
-        punishment: {
-          // <-- SEND THE PENANCE
-          type: "penance",
-          task: randomPenance.task,
-          quote: randomPenance.quote,
-        },
-      });
     }
 
     if (!devilDialogue) {
@@ -119,6 +143,16 @@ export const submitAnswer = async (req, res) => {
         ? `CORRECT_ANSWER_${question.difficulty.toUpperCase()}`
         : `INCORRECT_ANSWER_${question.difficulty.toUpperCase()}`;
       devilDialogue = getDevilDialogue(trigger);
+    }
+
+    if (session.strikesLeft <= 0) {
+      session.isActive = false;
+      await Promise.all([session.save(), user.save()]);
+      return res.json({
+        result: "incorrect",
+        feedback: getDevilDialogue("GAME_OVER"),
+        isGameOver: true,
+      });
     }
 
     const nextQuestion = await selectNextQuestion(session, question, isCorrect);
@@ -152,6 +186,57 @@ export const submitAnswer = async (req, res) => {
     });
   } catch (error) {
     console.error("Error submitting answer:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const startWeaknessDrill = async (req, res) => {
+  const userId = req.user._id;
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    const weakness = findWeakestLink(user.progress);
+
+    if (!weakness) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "The Devil hasn't found your weakness yet. Play more trials!",
+        });
+    }
+
+    const drillQuestions = await Question.find({
+      subject: weakness.subject,
+      subTopic: weakness.subTopic,
+    }).limit(5);
+
+    if (drillQuestions.length === 0) {
+      return res
+        .status(404)
+        .json({
+          message: `Could not find any drill questions for ${weakness.subTopic}.`,
+        });
+    }
+
+    const session = new GauntletSession({
+      userId,
+      subject: `Weakness Drill: ${weakness.subTopic}`,
+    });
+
+    const firstQuestion = drillQuestions[0];
+    session.questionHistory.push(firstQuestion._id);
+    await session.save();
+
+    res.status(201).json({
+      message: `Weakness Drill started!`,
+      sessionId: session._id,
+      question: firstQuestion,
+      drillQuestionIds: drillQuestions.map((q) => q._id),
+    });
+  } catch (error) {
+    console.error("Error starting weakness drill:", error);
     res.status(500).json({ message: "Server Error" });
   }
 };

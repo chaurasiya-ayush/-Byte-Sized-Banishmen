@@ -1,32 +1,114 @@
 {
+  "GAUNTLET_START": [
+    {
+      "text": "Let's see if you have what it takes, mortal.",
+      "audioUrl": null
+    },
+    {
+      "text": "Your trial begins now. Try not to disappoint me.",
+      "audioUrl": null
+    },
+    { "text": "Another soul dares to challenge me? Amusing.", "audioUrl": null }
+  ],
   "CORRECT_ANSWER_EASY": [
-    { "text": "Fine, whatever. That was an easy one anyway.", "audioUrl": null },
-    { "text": "Don't get used to it.", "audioUrl": null }
+    {
+      "text": "Fine, whatever. That was an easy one anyway.",
+      "audioUrl": null
+    },
+    { "text": "Don't get used to it.", "audioUrl": null },
+    {
+      "text": "Even a goblin could answer that. I'm not impressed.",
+      "audioUrl": null
+    },
+    {
+      "text": "Correct. A single drop of knowledge in your ocean of ignorance.",
+      "audioUrl": null
+    }
   ],
   "CORRECT_ANSWER_MEDIUM": [
     { "text": "Hmph. A lucky guess, mortal.", "audioUrl": null },
-    { "text": "Not bad... for a human.", "audioUrl": null }
+    { "text": "Not bad... for a human.", "audioUrl": null },
+    {
+      "text": "Acceptable. But the real challenges are yet to come.",
+      "audioUrl": null
+    },
+    { "text": "You grasp the concept. Barely.", "audioUrl": null }
   ],
   "CORRECT_ANSWER_HARD": [
     { "text": "Impressive. But your luck will run out.", "audioUrl": null },
-    { "text": "You may have won the battle, but the war is far from over.", "audioUrl": null }
+    {
+      "text": "You may have won the battle, but the war is far from over.",
+      "audioUrl": null
+    },
+    {
+      "text": "A flicker of brilliance. Let's see if you can sustain it.",
+      "audioUrl": null
+    },
+    {
+      "text": "Well done. Perhaps you're not as hopeless as I thought.",
+      "audioUrl": null
+    }
   ],
   "INCORRECT_ANSWER_EASY": [
     { "text": "Pathetic! You call that an attempt?", "audioUrl": null },
-    { "text": "Even a goblin could answer that.", "audioUrl": null }
+    {
+      "text": "Was that a guess, or did you actually think that was correct? Both are equally sad.",
+      "audioUrl": null
+    },
+    { "text": "Wrong. Utterly and embarrassingly wrong.", "audioUrl": null },
+    {
+      "text": "I've seen calculators with more processing power than you.",
+      "audioUrl": null
+    }
   ],
   "INCORRECT_ANSWER_MEDIUM": [
     { "text": "Are you even trying?", "audioUrl": null },
-    { "text": "My disappointment is immeasurable.", "audioUrl": null }
+    { "text": "My disappointment is immeasurable.", "audioUrl": null },
+    { "text": "That was painfully incorrect. Try again.", "audioUrl": null },
+    { "text": "Error 404: Brain not found.", "audioUrl": null }
   ],
   "INCORRECT_ANSWER_HARD": [
-    { "text": "And so, your confidence crumbles to dust. As expected.", "audioUrl": null },
-    { "text": "Perhaps this is too much for your feeble mind.", "audioUrl": null }
+    {
+      "text": "And so, your confidence crumbles to dust. As expected.",
+      "audioUrl": null
+    },
+    {
+      "text": "Perhaps this is too much for your feeble mind.",
+      "audioUrl": null
+    },
+    {
+      "text": "You have reached the limits of your knowledge. How predictable.",
+      "audioUrl": null
+    },
+    { "text": "No, no, no! That's not it at all.", "audioUrl": null }
+  ],
+  "FIRST_STRIKE": [
+    { "text": "One strike. A warning.", "audioUrl": null },
+    { "text": "Careful now. The abyss is unforgiving.", "audioUrl": null }
+  ],
+  "LAST_STRIKE": [
+    { "text": "Your last chance. Make it count.", "audioUrl": null },
+    {
+      "text": "One more failure and your soul is forfeit. No pressure.",
+      "audioUrl": null
+    }
   ],
   "GAME_OVER": [
-    { "text": "Game over. Your soul is mine.", "audioUrl": null }
+    { "text": "Game over. Your soul is mine.", "audioUrl": null },
+    {
+      "text": "Three strikes. You have failed. As I knew you would.",
+      "audioUrl": null
+    },
+    { "text": "Your trial ends here. You are not worthy.", "audioUrl": null }
   ],
   "SESSION_WIN": [
-    { "text": "You've survived... for now. Don't think this is over.", "audioUrl": null }
+    {
+      "text": "You've survived... for now. Don't think this is over.",
+      "audioUrl": null
+    },
+    {
+      "text": "You've cleared all available challenges. Go on, get out of here before I change my mind.",
+      "audioUrl": null
+    }
   ]
 }

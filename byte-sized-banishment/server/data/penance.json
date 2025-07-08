@@ -1,6 +1,6 @@
 [
   {
-    "task": "Do 10 pushups. NOW.",
+    "task": "Do 10 pushups. NOW",
     "quote": "A strong mind requires a strong vessel. Don't neglect it."
   },
   {
@@ -18,5 +18,33 @@
   {
     "task": "Close your eyes and visualize the solution to the last problem you failed.",
     "quote": "The battlefield of the mind is where true victory is forged."
+  },
+  {
+    "task": "Go outside and touch grass for 5 minutes. No, really.",
+    "quote": "Your code runs on silicon, but you run on sunlight and air. Do not forget this."
+  },
+  {
+    "task": "Find one of your old projects and identify one thing you would do differently now.",
+    "quote": "Wisdom is not in never making mistakes, but in recognizing them later."
+  },
+  {
+    "task": "Read the documentation for a programming feature you've never used before.",
+    "quote": "A true master never stops being a student. Your library of knowledge is too small."
+  },
+  {
+    "task": "Do 20 jumping jacks.",
+    "quote": "Get the blood flowing! A stagnant body leads to a stagnant mind."
+  },
+  {
+    "task": "Organize your computer's desktop. Banish the chaos.",
+    "quote": "How can you bring order to complex code if you cannot bring order to your own workspace?"
+  },
+  {
+    "task": "Write a 3-line poem about a `for` loop.",
+    "quote": "Creativity is the final step to true understanding. Express your knowledge."
+  },
+  {
+    "task": "Meditate for 2 minutes. Clear your mind of all syntax.",
+    "quote": "The most brilliant solutions come not from frantic thought, but from a place of calm clarity."
   }
 ]

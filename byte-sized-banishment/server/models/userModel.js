@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
+// --- Sub-schemas for clarity ---
 const activeEffectSchema = new mongoose.Schema(
   {
     type: { type: String, enum: ["blessing", "curse", null], default: null },
@@ -11,7 +12,6 @@ const activeEffectSchema = new mongoose.Schema(
   { _id: false }
 );
 
-// This new schema will store progress for each sub-topic
 const subTopicProgressSchema = new mongoose.Schema(
   {
     correct: { type: Number, default: 0 },
@@ -30,6 +30,8 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       match: [/\S+@\S+\.\S+/, "is invalid"],
     },
+    // Using a unique username for easier searching and display
+    username: { type: String, required: true, unique: true, trim: true },
     password: { type: String, required: true, minlength: 6 },
     isVerified: { type: Boolean, default: false },
     level: { type: Number, default: 1 },
@@ -40,17 +42,21 @@ const userSchema = new mongoose.Schema(
     dailyStreak: { type: Number, default: 0 },
     lastLogin: { type: Date, default: Date.now },
     activeEffect: { type: activeEffectSchema, default: () => ({}) },
-    // --- NEW FIELD FOR SKILL TREE ---
-    // Using a Map to store progress for each sub-topic dynamically.
-    // The key will be the subject+subTopic name (e.g., "JavaScript-Arrays")
-    progress: {
-      type: Map,
-      of: subTopicProgressSchema,
-      default: {},
-    },
+    progress: { type: Map, of: subTopicProgressSchema, default: {} },
+
+    // --- NEW FIELDS FOR FRIENDS SYSTEM ---
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    friendRequestsSent: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    friendRequestsReceived: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    ],
   },
   { timestamps: true }
 );
+
+// --- Ensure username is set during registration ---
+// (You will need to update your /controllers/authController.js register function
+// to accept and save a 'username' from the request body)
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();

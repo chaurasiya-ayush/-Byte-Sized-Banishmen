@@ -5,7 +5,9 @@ import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import GauntletPage from "./pages/gauntlet/GauntletPage";
 import SkillTreePage from "./pages/skill-tree/SkillTreePage";
-import LeaderboardPage from "./pages/LeaderboardPage"; // <-- IMPORT NEW PAGE
+import LeaderboardPage from "./pages/LeaderboardPage";
+import SocialPage from "./pages/SocialPage";
+import DuelGauntletPage from "./pages/DuelGauntletPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -46,12 +48,26 @@ function App() {
                 <LeaderboardPage />
               </ProtectedRoute>
             }
-          />{" "}
-          {/* <-- ADD NEW ROUTE */}
+          />
+          <Route
+            path="/friends"
+            element={
+              <ProtectedRoute>
+                <SocialPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/duel/:duelId"
+            element={
+              <ProtectedRoute>
+                <DuelGauntletPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Router>
     </>
   );
 }
-
 export default App;

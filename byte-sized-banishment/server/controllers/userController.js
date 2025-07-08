@@ -53,6 +53,7 @@ export const getDashboardData = async (req, res) => {
       success: true,
       stats: {
         email: user.email,
+        username: user.username,
         level: user.level,
         xp: user.xp,
         xpToNextLevel: user.xpToNextLevel,

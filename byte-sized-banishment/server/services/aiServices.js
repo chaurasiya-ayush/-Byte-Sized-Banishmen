@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import Question from "../models/questionModel.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const dialoguePath = path.join(__dirname, "../data/dialogueWithAudio.json");
@@ -12,7 +13,7 @@ try {
   console.error("Could not read dialogueWithAudio.json.", error);
 }
 
-// --- Engine 1: Adaptive Question Selector (UPGRADED) ---
+// --- Engine 1: Adaptive Question Selector ---
 async function selectNextQuestion(session, lastQuestion, isCorrect) {
   const difficultyOrder = ["easy", "medium", "hard"];
   const lastDifficultyIndex = difficultyOrder.indexOf(lastQuestion.difficulty);
@@ -20,49 +21,38 @@ async function selectNextQuestion(session, lastQuestion, isCorrect) {
   let nextDifficulty;
   let queryOptions = {
     subject: session.subject,
-    _id: { $nin: session.questionHistory }, // Exclude questions already asked
+    _id: { $nin: session.questionHistory },
   };
 
   if (isCorrect) {
-    // If correct, try to increase difficulty
     if (lastDifficultyIndex < 2) {
-      // Not hard
-      // If they have a streak of 2 on medium, try a hard one
       if (lastQuestion.difficulty === "medium" && session.correctStreak >= 2) {
         nextDifficulty = "hard";
       } else {
         nextDifficulty = difficultyOrder[lastDifficultyIndex + 1];
       }
     } else {
-      nextDifficulty = "hard"; // Stay on hard if correct
+      nextDifficulty = "hard";
     }
   } else {
-    // Incorrect
-    // If incorrect, drop difficulty and focus on the same sub-topic to reinforce
     if (lastDifficultyIndex > 0) {
-      // Not easy
       nextDifficulty = difficultyOrder[lastDifficultyIndex - 1];
     } else {
-      nextDifficulty = "easy"; // Stay on easy if incorrect
+      nextDifficulty = "easy";
     }
-    // Add sub-topic to the query to find a reinforcing question
     if (lastQuestion.subTopic) {
       queryOptions.subTopic = lastQuestion.subTopic;
     }
   }
 
   queryOptions.difficulty = nextDifficulty;
-
   let nextQuestion = await Question.findOne(queryOptions);
 
-  // Fallback logic: If no specific question is found (e.g., no easy questions left for that sub-topic),
-  // broaden the search by removing the sub-topic constraint.
   if (!nextQuestion) {
     delete queryOptions.subTopic;
     nextQuestion = await Question.findOne(queryOptions);
   }
 
-  // Final fallback: If still no question, try any difficulty.
   if (!nextQuestion) {
     delete queryOptions.difficulty;
     nextQuestion = await Question.findOne(queryOptions);
@@ -71,14 +61,16 @@ async function selectNextQuestion(session, lastQuestion, isCorrect) {
   return nextQuestion;
 }
 
-// --- Engine 2 & 3 (Remain the same) ---
+// --- Engine 2: Dynamic Persona ---
 function getDevilDialogue(trigger) {
   const lines = dialogueLines[trigger] || [];
   if (lines.length === 0) return { text: "...", audioUrl: null };
   return lines[Math.floor(Math.random() * lines.length)];
 }
 
+// --- Engine 3: Simple Answer Validator ---
 function validateAnswer(userAnswer, question) {
+  // Note: This only handles simple cases. Code validation is handled elsewhere.
   let isCorrect = false;
   if (question.type === "mcq" || question.type === "integer") {
     isCorrect = userAnswer.toString() === question.correctAnswer.toString();
@@ -86,24 +78,30 @@ function validateAnswer(userAnswer, question) {
   return { isCorrect };
 }
 
-// --- NEW "WEAKEST LINK" ANALYZER ---
+// --- "WEAKEST LINK" ANALYZER (FIXED) ---
 function findWeakestLink(userProgress) {
-  let weakestTopic = "Nothing Yet...";
-  let lowestScore = 1; // Start with a perfect score
+  let weakestTopicKey = null;
+  let lowestScore = 1.0; // Start with a perfect score (100%)
+  const MINIMUM_ATTEMPTS = 3;
 
-  // Iterate over the user's progress map
   for (const [key, progress] of userProgress.entries()) {
-    // We only consider topics the user has attempted at least 3 times
-    if (progress.totalAttempted >= 3) {
+    if (progress.totalAttempted >= MINIMUM_ATTEMPTS) {
       const successRate = progress.correct / progress.totalAttempted;
       if (successRate < lowestScore) {
         lowestScore = successRate;
-        // The key is "Subject-SubTopic", so we split to get the sub-topic name
-        weakestTopic = key.split("-")[1] || "a specific area";
+        weakestTopicKey = key;
       }
     }
   }
-  return weakestTopic;
+
+  // If a weakness is found, return it as a structured object
+  if (weakestTopicKey) {
+    const [subject, subTopic] = weakestTopicKey.split("-");
+    return { subject, subTopic };
+  }
+
+  // Return null if no weakness meets the criteria
+  return null;
 }
 
 export {
