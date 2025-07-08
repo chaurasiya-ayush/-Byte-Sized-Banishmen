@@ -8,6 +8,7 @@ import DevilDialogue from "./components/DevilDialogue";
 import StatusBar from "./components/StatusBar";
 import AnswerZone from "./components/AnswerZone";
 import QuitModal from "./components/QuitModal";
+import PenanceModal from "./components/PenanceModal"; // <-- IMPORT NEW COMPONENT
 
 const GauntletPage = () => {
   const location = useLocation();
@@ -28,6 +29,7 @@ const GauntletPage = () => {
     questionNum: 1,
   });
   const [isQuitModalOpen, setQuitModalOpen] = useState(false);
+  const [activePenance, setActivePenance] = useState(null); // <-- NEW STATE FOR PUNISHMENT
 
   useEffect(() => {
     if (!session) {
@@ -63,7 +65,6 @@ const GauntletPage = () => {
         questionId: currentQuestion._id,
         answer: userAnswer,
       };
-
       const { data } = await axios.post(
         "http://localhost:5000/api/gauntlet/submit",
         payload,
@@ -73,13 +74,20 @@ const GauntletPage = () => {
       setFeedback(data.feedback);
 
       if (data.isGameOver) {
-        toast.error(data.feedback?.text || "The Devil has claimed your soul!", {
-          duration: 5000,
-        });
-        navigate("/dashboard");
+        // --- PENANCE LOGIC ---
+        if (data.punishment) {
+          setActivePenance(data.punishment); // Show the modal
+        } else {
+          toast.error(
+            data.feedback?.text || "The Devil has claimed your soul!",
+            { duration: 5000 }
+          );
+          navigate("/dashboard");
+        }
         return;
       }
 
+      // ... (rest of the toast and state update logic remains the same)
       const toastOptions = { duration: 2000, position: "bottom-center" };
       if (data.feedback.text.includes("Level")) {
         toast.success(data.feedback.text, {
@@ -92,7 +100,6 @@ const GauntletPage = () => {
       } else {
         toast.error("Incorrect!", toastOptions);
       }
-
       setCurrentQuestion(data.nextQuestion);
       setStats((prev) => ({
         ...data.updatedStats,
@@ -107,8 +114,12 @@ const GauntletPage = () => {
   };
 
   const handleQuit = () => {
-    // Here you could add logic to invalidate the session on the backend if desired
     toast("You have fled the trial.", { icon: " cowardly 🏃" });
+    navigate("/dashboard");
+  };
+
+  const handleAcknowledgePenance = () => {
+    setActivePenance(null);
     navigate("/dashboard");
   };
 
@@ -127,20 +138,22 @@ const GauntletPage = () => {
         onConfirm={handleQuit}
         onCancel={() => setQuitModalOpen(false)}
       />
+      <PenanceModal
+        punishment={activePenance}
+        onAcknowledge={handleAcknowledgePenance}
+      />
+
       <div className="min-h-screen bg-gray-900 text-white flex">
-        {/* Left Sidebar */}
+        {/* ... (The rest of the GauntletPage JSX remains the same) ... */}
         <div className="w-1/4 min-w-[280px] h-screen sticky top-0">
           <StatusBar stats={stats} />
         </div>
-
-        {/* Main Content */}
         <main className="flex-grow p-8">
           <div className="max-w-4xl mx-auto">
             <DevilDialogue feedback={feedback} />
-
             <AnimatePresence mode="wait">
               <motion.div
-                key={currentQuestion._id} // This key is crucial for AnimatePresence to detect changes
+                key={currentQuestion._id}
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -50 }}
@@ -166,7 +179,6 @@ const GauntletPage = () => {
                     {currentQuestion.prompt}
                   </h2>
                 </div>
-
                 <AnswerZone
                   question={currentQuestion}
                   userAnswer={userAnswer}
@@ -174,7 +186,6 @@ const GauntletPage = () => {
                 />
               </motion.div>
             </AnimatePresence>
-
             <div className="mt-8 flex justify-between items-center">
               <button
                 onClick={() => setQuitModalOpen(true)}
