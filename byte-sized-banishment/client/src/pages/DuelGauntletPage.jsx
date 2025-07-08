@@ -24,7 +24,7 @@ const DuelGauntletPage = () => {
       try {
         const token = localStorage.getItem("authToken");
         const { data } = await axios.get(
-          `http://localhost:5000/api/duels/${duelId}`,
+          `${import.meta.env.VITE_API_URL}/api/duels/${duelId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setDuel(data.duel);
@@ -60,7 +60,7 @@ const DuelGauntletPage = () => {
     try {
       const token = localStorage.getItem("authToken");
       await axios.post(
-        `http://localhost:5000/api/duels/submit/${duelId}`,
+        `${import.meta.env.VITE_API_URL}/api/duels/submit/${duelId}`,
         { score },
         { headers: { Authorization: `Bearer ${token}` } }
       );

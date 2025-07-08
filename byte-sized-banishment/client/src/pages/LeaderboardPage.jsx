@@ -15,7 +15,7 @@ const LeaderboardPage = () => {
     const fetchLeaderboard = async () => {
       try {
         const { data } = await axios.get(
-          "http://localhost:5000/api/leaderboard"
+          `${import.meta.env.VITE_API_URL}/api/leaderboard`
         );
         if (data.success) {
           setLeaderboard(data.leaderboard);

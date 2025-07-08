@@ -16,7 +16,7 @@ const Register = ({ setIsRegister }) => {
     try {
       // Send username along with email and password
       const { data } = await axios.post(
-        "http://localhost:5000/api/auth/register",
+        `${import.meta.env.VITE_API_URL}/api/auth/register`,
         { username, email, password }
       );
       toast.success(data.message, { id: toastId, duration: 6000 });

@@ -294,7 +294,7 @@ const Dashboard = () => {
         if (!token) throw new Error("No auth token found.");
         const config = { headers: { Authorization: `Bearer ${token}` } };
         const { data } = await axios.get(
-          "http://localhost:5000/api/user/dashboard",
+          `${import.meta.env.VITE_API_URL}/api/user/dashboard`,
           config
         );
         if (data.success) setDashboardData(data);
@@ -328,7 +328,7 @@ const Dashboard = () => {
       const token = localStorage.getItem("authToken");
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const { data } = await axios.post(
-        "http://localhost:5000/api/gauntlet/start-weakness-drill",
+        `${import.meta.env.VITE_API_URL}/api/gauntlet/start-weakness-drill`,
         {},
         config
       );

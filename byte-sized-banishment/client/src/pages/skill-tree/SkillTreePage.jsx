@@ -23,7 +23,7 @@ const SkillTreePage = () => {
         const token = localStorage.getItem("authToken");
         const config = { headers: { Authorization: `Bearer ${token}` } };
         const { data } = await axios.get(
-          `http://localhost:5000/api/skill-tree/${subject}`,
+          `${import.meta.env.VITE_API_URL}/api/skill-tree/${subject}`,
           config
         );
 
