@@ -12,18 +12,18 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const login = async (email, password) => {
-    const { data } = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/auth/login`,
-      {
-        email,
-        password,
-      }
-    );
-    localStorage.setItem("authToken", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-    setCurrentUser(data.user);
-    return data;
-  };
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/auth/login`,
+        {
+          email,
+          password,
+        }
+      );
+      localStorage.setItem("authToken", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setCurrentUser(data.user);
+          return data;
+      };
 
   const logout = () => {
     localStorage.removeItem("authToken");
