@@ -10,7 +10,7 @@ const CodeEditorComponent = ({ onCodeChange, value, language }) => {
       case "javascript":
         return "javascript";
       default:
-        return "javascript"; // Default language
+        return "javascript"; // Default language 
     }
   };
 
