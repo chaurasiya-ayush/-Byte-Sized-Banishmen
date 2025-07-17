@@ -1,3 +1,266 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+/* Track (background) */
+::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 50%, #1a1a1a 100%);
+  border-radius: 10px;
+  border: 2px solid #2d1b1b;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+/* Handle (thumb) */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #dc2626 0%, #991b1b 50%, #7f1d1d 100%);
+  border-radius: 10px;
+  border: 2px solid #1f1f1f;
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.5),
+    inset 0 0 8px rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 50%, #991b1b 100%);
+  box-shadow: 0 0 15px rgba(220, 38, 38, 0.8), 0 0 25px rgba(239, 68, 68, 0.4),
+    inset 0 0 10px rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+/* Handle on active/click */
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.9), 0 0 30px rgba(245, 158, 11, 0.6),
+    inset 0 0 12px rgba(255, 255, 255, 0.3);
+}
+
+/* Corner where scrollbars meet */
+::-webkit-scrollbar-corner {
+  background: linear-gradient(45deg, #1a1a1a 0%, #0f0f0f 100%);
+  border: 2px solid #2d1b1b;
+}
+
+/* Horizontal scrollbar specific styling */
+::-webkit-scrollbar:horizontal {
+  height: 12px;
+}
+
+/* For Firefox - Custom scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #dc2626 #1a1a1a;
+}
+
+/* Enhanced scrollbar for specific containers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 16px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, #2d1b1b 0%, #1a1a1a 50%, #2d1b1b 100%);
+  border-radius: 12px;
+  border: 3px solid #0f0f0f;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #fbbf24 0%, #dc2626 50%, #991b1b 100%);
+  border-radius: 12px;
+  border: 3px solid #1f1f1f;
+  box-shadow: 0 0 15px rgba(220, 38, 38, 0.7), 0 0 25px rgba(251, 191, 36, 0.3),
+    inset 0 0 10px rgba(255, 255, 255, 0.15);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #fde047 0%, #ef4444 50%, #dc2626 100%);
+  box-shadow: 0 0 20px rgba(253, 224, 71, 0.8), 0 0 35px rgba(239, 68, 68, 0.5),
+    inset 0 0 15px rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+}
+
+/* Glowing scrollbar animation */
+@keyframes scrollbarGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.5),
+      inset 0 0 8px rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.8), 0 0 30px rgba(239, 68, 68, 0.4),
+      inset 0 0 12px rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Apply glow animation to scrollbar */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #dc2626 0%, #991b1b 50%, #7f1d1d 100%);
+  border-radius: 10px;
+  border: 2px solid #1f1f1f;
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.5),
+    inset 0 0 8px rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  animation: scrollbarGlow 3s ease-in-out infinite;
+}
+
+/* Thin scrollbar for mobile */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border-radius: 6px;
+    border: 1px solid #1f1f1f;
+  }
+}
+
+.animate-flash {
+  animation: flash 0.88s steps(2, start) infinite;
+}
+@keyframes flash {
+  to {
+    visibility: hidden;
+  }
+}
+
+@keyframes firelogo {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 10px #ff4c00ee);
+  }
+  70% {
+    filter: drop-shadow(0 0 25px #ffbe42ee);
+  }
+}
+.animate-firelogo {
+  animation: firelogo 1.4s infinite alternate;
+}
+
+@keyframes devilsFlicker {
+  0%,
+  52%,
+  62% {
+    opacity: 1;
+    filter: none;
+  }
+  55% {
+    opacity: 0.86;
+    filter: blur(1.1px) brightness(1.4);
+  }
+  57% {
+    opacity: 0.7;
+  }
+  60% {
+    opacity: 1;
+  }
+}
+.devils-flicker {
+  animation: devilsFlicker 2.6s infinite;
+}
+
+@keyframes slowpulse {
+  0%,
+  100% {
+    opacity: 0.1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.2;
+    transform: scale(1.08);
+  }
+}
+.animate-slowpulse {
+  animation: slowpulse 12s infinite;
+}
+
+@keyframes flickerText {
+  0%,
+  19%,
+  21%,
+  23%,
+  25%,
+  54%,
+  100% {
+    opacity: 1;
+    text-shadow: 0 0 10px #ff4c00, 0 0 20px #ff1c7f;
+  }
+  20%,
+  22%,
+  24% {
+    opacity: 0.4;
+    text-shadow: none;
+  }
+  55%,
+  80% {
+    opacity: 0.87;
+  }
+}
+.devil-text-flicker {
+  animation: flickerText 2.3s infinite;
+}
+
+@media (max-width: 700px) {
+  .devil-text-flicker {
+    font-size: 2rem;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.61;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.animate-pulse {
+  animation: pulse 1.5s infinite;
+}
+.devil-modal-shadow {
+  box-shadow: 0 0 20px 0 #ff4c00aa, 0 10px 80px 0 #bf0603cc,
+    0 16px 64px -12px #16161699;
+}
+.devil-flicker {
+  animation: devilFlicker 2.3s infinite;
+}
+@keyframes devilFlicker {
+  0%,
+  21%,
+  53%,
+  100% {
+    opacity: 1;
+    filter: none;
+  }
+  20%,
+  22%,
+  24% {
+    opacity: 0.6;
+    filter: blur(1px) brightness(1.3);
+  }
+  55% {
+    opacity: 0.92;
+  }
+  80% {
+    opacity: 0.7;
+  }
+}
+@keyframes devilHornsBounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-8px) scale(1.14);
+  }
+}
+.animate-devil-horns {
+  animation: devilHornsBounce 1.6s infinite;
+}

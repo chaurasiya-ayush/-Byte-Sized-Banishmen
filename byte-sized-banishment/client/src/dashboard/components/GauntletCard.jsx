@@ -1,5 +1,3 @@
-import React from "react";
-
 const GauntletCard = ({ session, onStartGauntlet }) => {
   return (
     <div className="bg-gray-800 bg-opacity-70 backdrop-blur-sm border border-gray-700 rounded-2xl p-8 text-center shadow-lg flex flex-col justify-center items-center h-full">
