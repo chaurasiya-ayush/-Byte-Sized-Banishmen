@@ -21,7 +21,7 @@ import { useCountdown } from "../hooks/useCountdown";
 const backgroundVideo = "/src/assets/";
 const logoImage = "/src/assets/logo.png";
 const themeMusic = "/src/assets/theme.mp3";
-const gauntletCardBg = "/src/assets/gauntlet-bg.jpg";
+const gauntletCardBg = "/src/assets/Dash-board-card.png";
 const devilSigil =
   "/src/assets/wing.jpg"; 
 

@@ -26,6 +26,36 @@ const getRankForLevel = (level) => {
 
 // --- Controller Functions ---
 
+// Get available subjects
+export const getSubjects = async (req, res) => {
+  try {
+    // Get unique subjects from the Question collection
+    const subjects = await Question.distinct("subject");
+
+    // If no subjects found in database, return default subjects
+    if (!subjects || subjects.length === 0) {
+      return res.json({
+        success: true,
+        subjects: ["JavaScript", "Python", "Data Structures"],
+        message: "Using default subjects",
+      });
+    }
+
+    res.json({
+      success: true,
+      subjects: subjects.sort(), // Sort alphabetically
+      message: "Subjects retrieved successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching subjects:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch subjects",
+      subjects: ["JavaScript", "Python", "Data Structures"], // Fallback
+    });
+  }
+};
+
 export const startGauntlet = async (req, res) => {
   const { subject, difficulty } = req.body;
   try {
@@ -199,12 +229,9 @@ export const startWeaknessDrill = async (req, res) => {
     const weakness = findWeakestLink(user.progress);
 
     if (!weakness) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "The Devil hasn't found your weakness yet. Play more trials!",
-        });
+      return res.status(400).json({
+        message: "The Devil hasn't found your weakness yet. Play more trials!",
+      });
     }
 
     const drillQuestions = await Question.find({
@@ -213,11 +240,9 @@ export const startWeaknessDrill = async (req, res) => {
     }).limit(5);
 
     if (drillQuestions.length === 0) {
-      return res
-        .status(404)
-        .json({
-          message: `Could not find any drill questions for ${weakness.subTopic}.`,
-        });
+      return res.status(404).json({
+        message: `Could not find any drill questions for ${weakness.subTopic}.`,
+      });
     }
 
     const session = new GauntletSession({

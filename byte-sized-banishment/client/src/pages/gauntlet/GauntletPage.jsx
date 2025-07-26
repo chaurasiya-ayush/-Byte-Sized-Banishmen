@@ -41,9 +41,9 @@ const GauntletPage = () => {
   useEffect(() => {
     if (currentQuestion) {
       if (currentQuestion.type === "code") {
-        const match = currentQuestion.prompt.match(/`(\w+)\s*\([^)]*\)`/);
-        const functionName = match ? match[1] : "yourFunction";
-        setUserAnswer(`function ${functionName}() {\n  // Your code here\n}`);
+        // Let the CodeEditorComponent handle the default template based on subject
+        // No need to set a default here as the editor will use its own language-specific template
+        setUserAnswer("");
       } else {
         setUserAnswer("");
       }
