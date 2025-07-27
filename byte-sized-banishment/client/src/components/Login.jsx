@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 
-const Login = ({ setIsRegister, setShowModal }) => {
+const Login = ({ setIsRegister, setShowModal, setIsForgotPassword }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -62,6 +62,15 @@ const Login = ({ setIsRegister, setShowModal }) => {
             className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
             required
           />
+          <div className="text-right mt-2">
+            <button
+              type="button"
+              onClick={() => setIsForgotPassword(true)}
+              className="text-red-400 hover:text-red-300 text-sm font-medium transition-colors duration-200"
+            >
+              Forgot Password?
+            </button>
+          </div>
         </div>
         <button
           type="submit"

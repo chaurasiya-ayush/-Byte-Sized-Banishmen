@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Login from "./Login";
 import Register from "./Register";
+import ForgotPassword from "./ForgotPassword";
 
 const AuthModal = ({ setShowModal }) => {
   const [isRegister, setIsRegister] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
 
   const backdropVariants = {
     visible: { opacity: 1 },
@@ -32,7 +34,9 @@ const AuthModal = ({ setShowModal }) => {
         onClick={() => setShowModal(false)}
       >
         <motion.div
-          className="bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md m-4 relative text-white border border-gray-700"
+          className={`bg-gray-800 rounded-2xl shadow-2xl p-8 w-full m-4 relative text-white border border-gray-700 ${
+            isForgotPassword ? "max-w-md" : isRegister ? "max-w-lg" : "max-w-md"
+          }`}
           variants={modalVariants}
           onClick={(e) => e.stopPropagation()} // Prevent closing modal when clicking inside
         >
@@ -56,13 +60,22 @@ const AuthModal = ({ setShowModal }) => {
             </svg>
           </button>
 
-          {isRegister ? (
+          {isForgotPassword ? (
+            <ForgotPassword
+              setIsForgotPassword={setIsForgotPassword}
+              setIsRegister={setIsRegister}
+            />
+          ) : isRegister ? (
             <Register
               setIsRegister={setIsRegister}
               setShowModal={setShowModal}
             />
           ) : (
-            <Login setIsRegister={setIsRegister} setShowModal={setShowModal} />
+            <Login
+              setIsRegister={setIsRegister}
+              setShowModal={setShowModal}
+              setIsForgotPassword={setIsForgotPassword}
+            />
           )}
         </motion.div>
       </motion.div>

@@ -22,8 +22,7 @@ const backgroundVideo = "/src/assets/";
 const logoImage = "/src/assets/logo.png";
 const themeMusic = "/src/assets/theme.mp3";
 const gauntletCardBg = "/src/assets/Dash-board-card.png";
-const devilSigil =
-  "/src/assets/wing.jpg"; 
+const devilSigil = "/src/assets/wing.jpg";
 
 const fireShadow = "0 0 20px 7px #ff3b0faf, 0 0 30px 14px #a80019cc";
 

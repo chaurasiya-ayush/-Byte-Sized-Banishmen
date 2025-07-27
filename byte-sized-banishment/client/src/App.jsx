@@ -1,5 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
@@ -8,6 +13,7 @@ import SkillTreePage from "./pages/skill-tree/SkillTreePage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import SocialPage from "./pages/SocialPage";
 import DuelGauntletPage from "./pages/DuelGauntletPage";
+import ResetPassword from "./pages/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 import backgroundVideo from "./assets/background.mp4";
 
@@ -100,74 +106,108 @@ function IntroVideoOverlay({ onFinish }) {
 }
 
 // ------------- APP COMPONENT -------------
-function App() {
-  const [showIntro, setShowIntro] = useState(true);
+function AppContent() {
+  const location = useLocation();
+  const [showIntro, setShowIntro] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
-  // Only run on initial mount
+  // Track navigation state
   useEffect(() => {
-    setShowIntro(true);
+    const handleBeforeUnload = () => {
+      // Clear navigation flag on page refresh/reload
+      sessionStorage.removeItem("isNavigating");
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
+
+  // Check if we should show intro video
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const isLandingOrDashboard =
+      currentPath === "/" || currentPath === "/dashboard";
+    const wasNavigating = sessionStorage.getItem("isNavigating") === "true";
+
+    // Show intro only on landing/dashboard pages and only if it's not from navigation
+    if (isLandingOrDashboard && !wasNavigating) {
+      setShowIntro(true);
+    }
+
+    // Set navigation flag for subsequent page changes
+    setIsNavigating(true);
+    sessionStorage.setItem("isNavigating", "true");
+  }, [location.pathname]);
+
+  const handleIntroFinish = () => {
+    setShowIntro(false);
+  };
 
   return (
     <>
       <Toaster position="top-center" reverseOrder={false} />
-      {showIntro && <IntroVideoOverlay onFinish={() => setShowIntro(false)} />}
-      {!showIntro && (
-        <Router>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/gauntlet"
-              element={
-                <ProtectedRoute>
-                  <GauntletPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/skill-tree"
-              element={
-                <ProtectedRoute>
-                  <SkillTreePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/leaderboard"
-              element={
-                <ProtectedRoute>
-                  <LeaderboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/friends"
-              element={
-                <ProtectedRoute>
-                  <SocialPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/duel/:duelId"
-              element={
-                <ProtectedRoute>
-                  <DuelGauntletPage />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </Router>
-      )}
+      {showIntro && <IntroVideoOverlay onFinish={handleIntroFinish} />}
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gauntlet"
+          element={
+            <ProtectedRoute>
+              <GauntletPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/skill-tree"
+          element={
+            <ProtectedRoute>
+              <SkillTreePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leaderboard"
+          element={
+            <ProtectedRoute>
+              <LeaderboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/friends"
+          element={
+            <ProtectedRoute>
+              <SocialPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/duel/:duelId"
+          element={
+            <ProtectedRoute>
+              <DuelGauntletPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 export default App;

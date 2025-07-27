@@ -24,8 +24,11 @@ const UserCard = ({ user, onAction, actionText, isFriend, actionIcon }) => (
     {onAction && (
       <button
         onClick={() => onAction(user)}
+        disabled={actionText === "Sent"}
         className={`font-semibold py-2 px-4 rounded-md text-sm transition-colors flex items-center gap-2 ${
-          isFriend
+          actionText === "Sent"
+            ? "bg-gray-600 cursor-not-allowed opacity-50"
+            : isFriend
             ? "bg-red-600 hover:bg-red-500"
             : "bg-blue-600 hover:bg-blue-500"
         }`}
@@ -137,11 +140,18 @@ const FindPlayers = ({ token }) => {
   useEffect(() => {
     if (query.trim().length > 2) {
       const search = async () => {
-        const { data } = await axios.get(
-          `http://localhost:5000/api/friends/search?q=${query}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setResults(data);
+        try {
+          console.log("Searching for users with query:", query);
+          const { data } = await axios.get(
+            `http://localhost:5000/api/friends/search?q=${query}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          console.log("Search results:", data);
+          setResults(data);
+        } catch (error) {
+          console.error("Search error:", error.response?.data || error.message);
+          setResults([]);
+        }
       };
       const timeoutId = setTimeout(search, 500); // Debounce search
       return () => clearTimeout(timeoutId);
@@ -150,13 +160,28 @@ const FindPlayers = ({ token }) => {
     }
   }, [query, token]);
 
-  const handleSendRequest = async (userId) => {
-    await axios.post(
-      `http://localhost:5000/api/friends/request/${userId}`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setSentRequests([...sentRequests, userId]);
+  const handleSendRequest = async (user) => {
+    try {
+      console.log(
+        "Sending friend request to:",
+        user.username,
+        "with ID:",
+        user._id
+      );
+      const response = await axios.post(
+        `http://localhost:5000/api/friends/request/${user._id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      console.log("Friend request response:", response.data);
+      setSentRequests([...sentRequests, user._id]);
+    } catch (error) {
+      console.error(
+        "Error sending friend request:",
+        error.response?.data || error.message
+      );
+      // You can add a toast notification here if needed
+    }
   };
 
   return (

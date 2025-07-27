@@ -10,6 +10,7 @@ const config = {
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS,
   BASE_URL: process.env.BASE_URL,
+  CLIENT_URL: process.env.CLIENT_URL || "http://localhost:5173",
   JUDGE0_API_KEY: process.env.JUDGE0_API_KEY,
   JUDGE0_API_HOST: process.env.JUDGE0_API_HOST,
 };
