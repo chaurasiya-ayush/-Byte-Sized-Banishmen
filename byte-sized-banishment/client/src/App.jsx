@@ -14,6 +14,8 @@ import LeaderboardPage from "./pages/LeaderboardPage";
 import SocialPage from "./pages/SocialPage";
 import DuelGauntletPage from "./pages/DuelGauntletPage";
 import ResetPassword from "./pages/ResetPassword";
+import VerificationSuccess from "./pages/VerificationSuccess";
+import VerificationError from "./pages/VerificationError";
 import ProtectedRoute from "./components/ProtectedRoute";
 import backgroundVideo from "./assets/background.mp4";
 
@@ -150,6 +152,8 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/verification-success" element={<VerificationSuccess />} />
+        <Route path="/verification-error" element={<VerificationError />} />
         <Route
           path="/dashboard"
           element={

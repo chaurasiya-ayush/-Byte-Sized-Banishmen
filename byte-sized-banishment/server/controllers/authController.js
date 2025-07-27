@@ -5,6 +5,8 @@ import sendEmail from "../utils/sendEmail.js";
 import {
   getPasswordResetEmailTemplate,
   getPasswordResetConfirmationTemplate,
+  getRegistrationVerificationTemplate,
+  getEmailVerificationConfirmationTemplate,
 } from "../utils/emailTemplates.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
@@ -45,9 +47,16 @@ export const register = async (req, res) => {
     }).save();
 
     const verificationUrl = `${config.BASE_URL}/api/auth/verify/${user.id}/${verificationToken}`;
-    const message = `<h1>Welcome to Byte-Sized Banishment!</h1><p>Please verify your email by clicking the link below:</p><a href="${verificationUrl}" target="_blank">Verify Your Email</a>`;
+    const emailTemplate = getRegistrationVerificationTemplate(
+      verificationUrl,
+      user.email
+    );
 
-    await sendEmail(user.email, "Email Verification", message);
+    await sendEmail(
+      user.email,
+      "Welcome to Byte-Sized Banishment - Verify Your Email",
+      emailTemplate
+    );
 
     res.status(201).json({
       message:
@@ -66,27 +75,66 @@ export const verifyEmail = async (req, res) => {
   try {
     // 1. Find user by ID
     const user = await User.findById(req.params.userId);
-    if (!user) return res.status(400).send("Invalid link: User not found.");
+    if (!user) {
+      return res.redirect(
+        `${
+          config.CLIENT_URL || "http://localhost:5173"
+        }/verification-error?error=user-not-found`
+      );
+    }
+
+    // Check if user is already verified
+    if (user.isVerified) {
+      return res.redirect(
+        `${
+          config.CLIENT_URL || "http://localhost:5173"
+        }/verification-error?error=already-verified`
+      );
+    }
 
     // 2. Find token for this user
     const token = await Token.findOne({
       userId: user._id,
       token: req.params.token,
     });
-    if (!token) return res.status(400).send("Invalid or expired link.");
+    if (!token) {
+      return res.redirect(
+        `${
+          config.CLIENT_URL || "http://localhost:5173"
+        }/verification-error?error=invalid-token`
+      );
+    }
 
     // 3. Verify user and delete token
     await User.updateOne({ _id: user._id }, { isVerified: true });
     await Token.findByIdAndDelete(token._id);
 
-    res
-      .status(200)
-      .send(
-        "<h1>Email Verified Successfully</h1><p>You can now log in to your account.</p>"
+    // Send welcome confirmation email
+    try {
+      const welcomeTemplate = getEmailVerificationConfirmationTemplate(
+        user.email
       );
+      await sendEmail(
+        user.email,
+        "Welcome to Byte-Sized Banishment - Let's Code!",
+        welcomeTemplate
+      );
+    } catch (emailError) {
+      console.error("Failed to send welcome email:", emailError);
+      // Don't fail the verification if email sending fails
+    }
+
+    // Redirect to success page
+    res.redirect(
+      `${config.CLIENT_URL || "http://localhost:5173"}/verification-success`
+    );
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Server Error");
+    console.error("Email verification error:", error);
+    res.redirect(
+      `${
+        config.CLIENT_URL || "http://localhost:5173"
+      }/verification-error?error=server-error`
+    );
   }
 };
 
