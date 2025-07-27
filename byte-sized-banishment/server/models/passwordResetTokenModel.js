@@ -30,9 +30,6 @@ const passwordResetTokenSchema = new mongoose.Schema(
 // Index to automatically delete expired tokens
 passwordResetTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-// Index on token for faster lookups
-passwordResetTokenSchema.index({ token: 1 });
-
 // Index on userId for faster lookups
 passwordResetTokenSchema.index({ userId: 1 });
 

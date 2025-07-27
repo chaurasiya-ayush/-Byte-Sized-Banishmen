@@ -18,6 +18,10 @@ export const AuthProvider = ({ children }) => {
     });
     localStorage.setItem("authToken", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
+
+    // Set flag to trigger intro video on dashboard entry
+    sessionStorage.setItem("justLoggedIn", "true");
+
     setCurrentUser(data.user);
     return data;
   };
@@ -25,6 +29,8 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("user");
+    sessionStorage.removeItem("justLoggedIn");
+    sessionStorage.removeItem("isNavigating");
     setCurrentUser(null);
   };
 

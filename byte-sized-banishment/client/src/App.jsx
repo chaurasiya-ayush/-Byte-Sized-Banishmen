@@ -111,34 +111,21 @@ function IntroVideoOverlay({ onFinish }) {
 function AppContent() {
   const location = useLocation();
   const [showIntro, setShowIntro] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
-
-  // Track navigation state
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      // Clear navigation flag on page refresh/reload
-      sessionStorage.removeItem("isNavigating");
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, []);
 
   // Check if we should show intro video
   useEffect(() => {
     const currentPath = location.pathname;
-    const isLandingOrDashboard =
-      currentPath === "/" || currentPath === "/dashboard";
-    const wasNavigating = sessionStorage.getItem("isNavigating") === "true";
+    const justLoggedIn = sessionStorage.getItem("justLoggedIn") === "true";
 
-    // Show intro only on landing/dashboard pages and only if it's not from navigation
-    if (isLandingOrDashboard && !wasNavigating) {
+    // Show intro ONLY when user just logged in and is entering dashboard
+    if (currentPath === "/dashboard" && justLoggedIn) {
       setShowIntro(true);
+      // Clear the flag so intro doesn't show again during this session
+      sessionStorage.removeItem("justLoggedIn");
     }
 
-    // Set navigation flag for subsequent page changes
-    setIsNavigating(true);
-    sessionStorage.setItem("isNavigating", "true");
+    // Clear navigation flag for subsequent page changes
+    sessionStorage.removeItem("isNavigating");
   }, [location.pathname]);
 
   const handleIntroFinish = () => {

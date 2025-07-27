@@ -18,7 +18,7 @@ import GauntletSetupModal from "../components/GauntletSetupModal";
 import { useCountdown } from "../hooks/useCountdown";
 
 // --- PLACEHOLDER ASSETS ---
-const backgroundVideo = "/src/assets/";
+const backgroundVideo = "/src/assets/card-bg.mp4";
 const logoImage = "/src/assets/logo.png";
 const themeMusic = "/src/assets/theme.mp3";
 const gauntletCardBg = "/src/assets/Dash-board-card.png";
