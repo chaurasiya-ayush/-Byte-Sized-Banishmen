@@ -12,17 +12,19 @@ import {
   FaTrophy,
   FaTree,
   FaUsers,
+  FaPlay,
+  FaPause,
 } from "react-icons/fa";
 import { GiLevelEndFlag, GiCrown, GiFist } from "react-icons/gi";
 import GauntletSetupModal from "../components/GauntletSetupModal";
 import { useCountdown } from "../hooks/useCountdown";
 
 // --- PLACEHOLDER ASSETS ---
-const backgroundVideo = "/src/assets/card-bg.mp4";
-const logoImage = "/src/assets/logo.png";
-const themeMusic = "/src/assets/theme.mp3";
-const gauntletCardBg = "/src/assets/Dash-board-card.png";
-const devilSigil = "/src/assets/wing.jpg";
+import backgroundVideo from "../assets/card-bg.mp4";
+import logoImage from "../assets/logo.png";
+import themeMusic from "../assets/theme-music.mp3";
+import gauntletCardBg from "../assets/Dash-board-card.png";
+import devilSigil from "../assets/wing.jpg";
 
 const fireShadow = "0 0 20px 7px #ff3b0faf, 0 0 30px 14px #a80019cc";
 
@@ -391,6 +393,33 @@ const ActiveEffectPanel = ({ effect }) => {
   );
 };
 
+const AudioControls = ({ isPlaying, onTogglePlay }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay: 1 }}
+    className="fixed bottom-4 right-4 z-50 bg-black/80 backdrop-blur-sm border border-red-700/30 rounded-xl p-3 flex items-center gap-3"
+  >
+    <motion.button
+      onClick={onTogglePlay}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.95 }}
+      className="bg-red-700/20 hover:bg-red-600/30 border border-red-500/40 text-red-400 hover:text-red-300 p-2 rounded-lg transition-all duration-200"
+      title={isPlaying ? "Pause Music" : "Play Music"}
+    >
+      {isPlaying ? (
+        <FaPause className="text-sm" />
+      ) : (
+        <FaPlay className="text-sm" />
+      )}
+    </motion.button>
+
+    <div className="flex items-center px-2 text-xs text-red-400/60 font-mono">
+      DEVIL'S SYMPHONY
+    </div>
+  </motion.div>
+);
+
 const Dashboard = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -400,6 +429,11 @@ const Dashboard = () => {
   const [error, setError] = useState("");
   const audioRef = useRef(null);
   const [showGauntletModal, setShowGauntletModal] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(() => {
+    // Load play preference from localStorage
+    const savedPlaying = localStorage.getItem("audioPlaying");
+    return savedPlaying === "true";
+  });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -425,14 +459,184 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = 0.06;
-      audioRef.current.play().catch((e) => {});
+      const audio = audioRef.current;
+      audio.volume = 0.06;
+
+      // Don't autoplay - let user control playback
+      const setupAudio = () => {
+        // Add event listeners
+        const handleLoadedData = () => {
+          console.log("Theme music loaded successfully");
+
+          // Sync UI state with actual audio state on load
+          const actuallyPlaying = !audio.paused;
+          if (isPlaying !== actuallyPlaying) {
+            setIsPlaying(actuallyPlaying);
+            localStorage.setItem("audioPlaying", actuallyPlaying.toString());
+          }
+
+          // If user previously had it playing and audio isn't playing, try to start it
+          if (isPlaying && audio.paused) {
+            audio.play().catch((error) => {
+              console.log("Audio autoplay blocked by browser:", error);
+              setIsPlaying(false); // Reset state if autoplay fails
+              localStorage.setItem("audioPlaying", "false");
+            });
+          }
+        };
+
+        const handleError = (e) => {
+          console.error("Audio loading error:", e);
+          setIsPlaying(false);
+          localStorage.setItem("audioPlaying", "false");
+        };
+
+        const handlePlay = () => {
+          setIsPlaying(true);
+          localStorage.setItem("audioPlaying", "true");
+        };
+
+        const handlePause = () => {
+          setIsPlaying(false);
+          localStorage.setItem("audioPlaying", "false");
+        };
+
+        const handleEnded = () => {
+          setIsPlaying(false);
+          localStorage.setItem("audioPlaying", "false");
+        };
+
+        audio.addEventListener("loadeddata", handleLoadedData);
+        audio.addEventListener("error", handleError);
+        audio.addEventListener("play", handlePlay);
+        audio.addEventListener("pause", handlePause);
+        audio.addEventListener("ended", handleEnded);
+
+        // Check initial state immediately if audio is already loaded
+        if (audio.readyState >= 2) {
+          // HAVE_CURRENT_DATA or higher
+          handleLoadedData();
+        }
+
+        // Cleanup function
+        return () => {
+          audio.removeEventListener("loadeddata", handleLoadedData);
+          audio.removeEventListener("error", handleError);
+          audio.removeEventListener("play", handlePlay);
+          audio.removeEventListener("pause", handlePause);
+          audio.removeEventListener("ended", handleEnded);
+        };
+      };
+
+      const cleanup = setupAudio();
+      return cleanup;
     }
+  }, []); // Only run once when component mounts
+
+  // Handle page visibility changes - pause when user leaves the page
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (audioRef.current) {
+        if (document.hidden) {
+          // Page is hidden - pause audio and save the playing state
+          if (!audioRef.current.paused) {
+            audioRef.current.pause();
+            localStorage.setItem("audioWasPlayingBeforeHidden", "true");
+          } else {
+            localStorage.setItem("audioWasPlayingBeforeHidden", "false");
+          }
+        } else {
+          // Page is visible again - resume if it was playing before
+          const wasPlaying =
+            localStorage.getItem("audioWasPlayingBeforeHidden") === "true";
+          if (wasPlaying && isPlaying) {
+            audioRef.current.play().catch((error) => {
+              console.error("Error resuming audio:", error);
+              setIsPlaying(false);
+            });
+          }
+          localStorage.removeItem("audioWasPlayingBeforeHidden");
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isPlaying]);
+
+  // Cleanup audio when component unmounts (user navigates away)
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
   }, []);
+
+  // Additional state sync check after component mounts
+  useEffect(() => {
+    const syncAudioState = () => {
+      if (audioRef.current) {
+        const actuallyPlaying = !audioRef.current.paused;
+        if (isPlaying !== actuallyPlaying) {
+          console.log(
+            `Syncing audio state: UI shows ${isPlaying}, actual is ${actuallyPlaying}`
+          );
+          setIsPlaying(actuallyPlaying);
+          localStorage.setItem("audioPlaying", actuallyPlaying.toString());
+        }
+      }
+    };
+
+    // Check state after a short delay to ensure audio element is ready
+    const timeoutId = setTimeout(syncAudioState, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [isPlaying]);
 
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      const audio = audioRef.current;
+
+      // Check if audio state matches UI state and correct if needed
+      if (isPlaying && audio.paused) {
+        // UI thinks it's playing but audio is paused - fix the state
+        setIsPlaying(false);
+        localStorage.setItem("audioPlaying", "false");
+        return;
+      }
+
+      if (isPlaying) {
+        // Pause the audio
+        audio.pause();
+        setIsPlaying(false);
+        localStorage.setItem("audioPlaying", "false");
+        console.log("Devil's Symphony paused");
+      } else {
+        // Play the audio
+        audio
+          .play()
+          .then(() => {
+            setIsPlaying(true);
+            localStorage.setItem("audioPlaying", "true");
+            console.log("Devil's Symphony playing");
+          })
+          .catch((error) => {
+            console.error("Error playing audio:", error);
+            setIsPlaying(false);
+            localStorage.setItem("audioPlaying", "false");
+          });
+      }
+    }
   };
 
   const handleStartWeaknessDrill = async () => {
@@ -506,7 +710,11 @@ const Dashboard = () => {
       >
         <source src={backgroundVideo} type="video/mp4" />
       </video>
-      <audio ref={audioRef} src={themeMusic} loop />
+      <audio ref={audioRef} src={themeMusic} loop preload="auto" />
+
+      {/* Audio Controls */}
+      <AudioControls isPlaying={isPlaying} onTogglePlay={togglePlay} />
+
       <AnimatePresence>
         {showGauntletModal && (
           <GauntletSetupModal
