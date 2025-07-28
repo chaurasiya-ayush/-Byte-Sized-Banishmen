@@ -1,6 +1,15 @@
 import React from "react";
-import { FaHeart, FaStar, FaQuestionCircle } from "react-icons/fa";
-import { GiLevelEndFlag } from "react-icons/gi";
+import {
+  FaHeart,
+  FaStar,
+  FaQuestionCircle,
+  FaChartLine,
+  FaFire,
+  FaBolt,
+  FaBullseye,
+  FaCrown,
+} from "react-icons/fa";
+import { GiDevilMask } from "react-icons/gi";
 
 const StatusBar = ({ stats, currentQuestion }) => {
   // Calculate session progress (based on questions answered)
@@ -13,25 +22,25 @@ const StatusBar = ({ stats, currentQuestion }) => {
       icon: <FaStar className="text-yellow-400" />,
       label: "Score",
       value: stats.score || 0,
-      emoji: "⭐",
+      iconComponent: FaStar,
     },
     {
-      icon: <GiLevelEndFlag className="text-orange-400" />,
+      icon: <FaFire className="text-orange-400" />,
       label: "Level",
       value: stats.level || 1,
-      emoji: "🔥",
+      iconComponent: FaFire,
     },
     {
       icon: <FaQuestionCircle className="text-red-400" />,
       label: "Questions",
       value: `${questionsAnswered} answered`,
-      emoji: "📊",
+      iconComponent: FaQuestionCircle,
     },
     {
-      icon: <FaStar className="text-green-400" />,
+      icon: <FaBolt className="text-green-400" />,
       label: "Streak",
       value: `${currentStreak} correct`,
-      emoji: "⚡",
+      iconComponent: FaBolt,
     },
   ];
 
@@ -39,7 +48,9 @@ const StatusBar = ({ stats, currentQuestion }) => {
     <div className="bg-gradient-to-b from-black/60 to-red-900/20 backdrop-blur-sm border-r-2 border-red-500/40 p-4 flex flex-col h-full overflow-hidden">
       {/* Devilish Header */}
       <div className="text-center border-b border-red-500/30 pb-3 mb-4 flex-shrink-0">
-        <div className="text-3xl mb-1">😈</div>
+        <div className="text-3xl mb-1 text-red-500">
+          <GiDevilMask />
+        </div>
         <h2
           className="text-lg font-bold text-red-400"
           style={{ fontFamily: "'Orbitron', monospace" }}
@@ -51,10 +62,11 @@ const StatusBar = ({ stats, currentQuestion }) => {
       {/* Session Stats - Scrollable */}
       <div className="flex-grow overflow-y-auto mb-4">
         <h3
-          className="font-bold text-sm text-orange-400 mb-3 flex items-center gap-1"
+          className="font-bold text-sm text-orange-400 mb-3 flex items-center gap-2"
           style={{ fontFamily: "'Orbitron', monospace" }}
         >
-          📈 SESSION STATS
+          <FaChartLine className="text-orange-400" />
+          SESSION STATS
         </h3>
         <div className="space-y-2">
           {statItems.map((item) => (
@@ -65,7 +77,19 @@ const StatusBar = ({ stats, currentQuestion }) => {
                 boxShadow: "0 0 10px rgba(220, 38, 38, 0.1)",
               }}
             >
-              <div className="text-2xl flex-shrink-0">{item.emoji}</div>
+              <div className="text-xl flex-shrink-0">
+                <item.iconComponent
+                  className={`${
+                    item.label === "Score"
+                      ? "text-yellow-400"
+                      : item.label === "Level"
+                      ? "text-orange-400"
+                      : item.label === "Questions"
+                      ? "text-red-400"
+                      : "text-green-400"
+                  }`}
+                />
+              </div>
               <div className="flex-grow min-w-0">
                 <p
                   className="text-xs text-gray-300 font-mono truncate"
@@ -93,10 +117,11 @@ const StatusBar = ({ stats, currentQuestion }) => {
         {currentQuestion && (
           <div className="bg-gradient-to-r from-orange-900/40 to-red-900/40 p-3 rounded-lg border border-orange-500/50">
             <h3
-              className="font-bold text-xs text-orange-400 mb-2 flex items-center gap-1"
+              className="font-bold text-xs text-orange-400 mb-2 flex items-center gap-2"
               style={{ fontFamily: "'Orbitron', monospace" }}
             >
-              🎯 CURRENT CHALLENGE
+              <FaBullseye className="text-orange-400" />
+              CURRENT CHALLENGE
             </h3>
             <div className="space-y-1">
               <div className="flex justify-between items-center">
@@ -124,7 +149,7 @@ const StatusBar = ({ stats, currentQuestion }) => {
               </div>
               <div className="text-center pt-1">
                 <div
-                  className="text-xs text-yellow-300"
+                  className="text-xs text-yellow-300 flex items-center justify-center gap-1"
                   style={{ fontFamily: "'Orbitron', monospace" }}
                 >
                   XP:{" "}
@@ -133,7 +158,7 @@ const StatusBar = ({ stats, currentQuestion }) => {
                     : currentQuestion.difficulty === "medium"
                     ? "25"
                     : "10"}{" "}
-                  🔥
+                  <FaFire className="text-orange-400 text-xs" />
                 </div>
               </div>
             </div>
@@ -142,7 +167,9 @@ const StatusBar = ({ stats, currentQuestion }) => {
 
         {/* Devil Rank Display */}
         <div className="bg-gradient-to-r from-red-900/40 to-orange-900/40 p-3 rounded-lg border border-red-500/50 text-center">
-          <div className="text-lg mb-1">👑</div>
+          <div className="text-lg mb-1 text-yellow-400">
+            <FaCrown />
+          </div>
           <p
             className="text-xs text-gray-300"
             style={{ fontFamily: "'Orbitron', monospace" }}

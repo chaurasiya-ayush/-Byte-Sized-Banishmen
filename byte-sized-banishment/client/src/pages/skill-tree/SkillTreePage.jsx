@@ -5,6 +5,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
+import { FaFire, FaBullseye, FaSearch, FaBolt } from "react-icons/fa";
+import { GiDevilMask } from "react-icons/gi";
 import CustomNode from "./components/CustomNode";
 
 const SkillTreePage = () => {
@@ -146,10 +148,11 @@ const SkillTreePage = () => {
 
         <div className="flex flex-col">
           <label
-            className="text-orange-300 text-xs mb-1 font-bold"
+            className="text-orange-300 text-xs mb-1 font-bold flex items-center gap-1"
             style={{ fontFamily: "Rajdhani, sans-serif" }}
           >
-            🔥 Choose Your Path:
+            <FaFire className="text-orange-400" />
+            Choose Your Path:
           </label>
           <motion.select
             value={subject}
@@ -170,7 +173,8 @@ const SkillTreePage = () => {
                   value={subjectName}
                   className="bg-gray-900"
                 >
-                  🎯 {subjectName}
+                  <FaBullseye className="inline mr-1" />
+                  {subjectName}
                 </option>
               ))
             )}
@@ -185,16 +189,19 @@ const SkillTreePage = () => {
           transition={{ delay: 0.5, duration: 0.6 }}
         >
           <h1
-            className="text-2xl lg:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400"
+            className="text-2xl lg:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 flex items-center justify-center lg:justify-start gap-2"
             style={{ fontFamily: "Orbitron, monospace" }}
           >
-            🔥 Devil's Skill Tree 🔥
+            <FaFire className="text-orange-400" />
+            Devil's Skill Tree
+            <FaFire className="text-orange-400" />
           </h1>
           <p
-            className="text-orange-300 text-xs lg:text-sm mt-1"
+            className="text-orange-300 text-xs lg:text-sm mt-1 flex items-center justify-center lg:justify-start gap-1"
             style={{ fontFamily: "Rajdhani, sans-serif" }}
           >
-            Master the dark arts of coding... one skill at a time 😈
+            Master the dark arts of coding... one skill at a time
+            <GiDevilMask className="text-red-400" />
           </p>
         </motion.div>
       </motion.header>
@@ -202,19 +209,27 @@ const SkillTreePage = () => {
       {loading ? (
         <div className="flex-1 flex flex-col justify-center items-center">
           <motion.div
-            className="text-4xl mb-6"
+            className="text-4xl mb-6 text-orange-400"
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           >
-            🔥
+            <FaFire />
           </motion.div>
           <p
-            className="text-2xl animate-pulse bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent font-bold"
+            className="text-2xl animate-pulse bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent font-bold flex items-center gap-2"
             style={{ fontFamily: "Orbitron, monospace" }}
           >
-            {availableSubjects.length === 0
-              ? "🔍 Loading available subjects..."
-              : "⚡ Forging the Devil's Path..."}
+            {availableSubjects.length === 0 ? (
+              <>
+                <FaSearch className="text-orange-400" />
+                Loading available subjects...
+              </>
+            ) : (
+              <>
+                <FaBolt className="text-orange-400" />
+                Forging the Devil's Path...
+              </>
+            )}
           </p>
           <div className="mt-4 flex space-x-2">
             {[...Array(3)].map((_, i) => (

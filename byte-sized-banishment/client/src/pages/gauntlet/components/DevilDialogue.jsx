@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FaVolumeUp, FaVolumeMute, FaFire } from "react-icons/fa";
+import { GiDevilMask } from "react-icons/gi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTypingEffect } from "../../../hooks/useTypingEffect"; // Adjust path if needed
 
@@ -35,12 +36,12 @@ const DevilDialogue = ({ feedback }) => {
       <div className="absolute inset-0 opacity-10 pointer-events-none"></div>
 
       <div className="flex items-start gap-4 relative z-10">
-        <div className="text-4xl text-red-500 mt-1 animate-pulse">
+        <div className="text-4xl text-red-500 mt-1">
           <motion.div
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
-            😈
+            <GiDevilMask className="animate-pulse" />
           </motion.div>
         </div>
         <div className="flex-grow">

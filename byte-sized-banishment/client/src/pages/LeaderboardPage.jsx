@@ -2,7 +2,15 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { FaTrophy, FaUserCircle } from "react-icons/fa";
+import {
+  FaTrophy,
+  FaUserCircle,
+  FaFire,
+  FaMedal,
+  FaCrown,
+  FaAward,
+} from "react-icons/fa";
+import { GiDevilMask } from "react-icons/gi";
 import { motion } from "framer-motion";
 
 const LeaderboardPage = () => {
@@ -57,7 +65,9 @@ const LeaderboardPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            🔥 League of the Damned 🔥
+            <FaFire className="inline mr-3" />
+            League of the Damned
+            <FaFire className="inline ml-3" />
           </motion.h1>
           <motion.p
             className="text-orange-200 mt-4 text-lg"
@@ -66,7 +76,8 @@ const LeaderboardPage = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
           >
-            See who has earned the Devil's favor... or his eternal wrath 😈
+            See who has earned the Devil's favor... or his eternal wrath{" "}
+            <GiDevilMask className="inline text-red-400" />
           </motion.p>
           <motion.button
             onClick={() => navigate("/dashboard")}
@@ -89,8 +100,10 @@ const LeaderboardPage = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="text-3xl animate-pulse bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent font-bold">
-              🔥 Calculating the Ranks of the Damned... 🔥
+            <div className="text-3xl animate-pulse bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent font-bold flex items-center justify-center gap-3">
+              <FaFire />
+              Calculating the Ranks of the Damned...
+              <FaFire />
             </div>
             <div className="mt-4 flex justify-center space-x-2">
               {[...Array(3)].map((_, i) => (
@@ -145,7 +158,13 @@ const LeaderboardPage = () => {
                   >
                     {rank <= 3 ? (
                       <span className="text-2xl">
-                        {rank === 1 ? "👑" : rank === 2 ? "🥈" : "🥉"}
+                        {rank === 1 ? (
+                          <FaCrown className="text-yellow-400" />
+                        ) : rank === 2 ? (
+                          <FaMedal className="text-gray-400" />
+                        ) : (
+                          <FaAward className="text-orange-600" />
+                        )}
                       </span>
                     ) : (
                       rank
@@ -160,7 +179,9 @@ const LeaderboardPage = () => {
                       }`}
                       style={{ fontFamily: "Rajdhani, sans-serif" }}
                     >
-                      {isCurrentUser && "👹 "}
+                      {isCurrentUser && (
+                        <GiDevilMask className="inline mr-2 text-red-400" />
+                      )}
                       {player.email}
                     </p>
                     <p

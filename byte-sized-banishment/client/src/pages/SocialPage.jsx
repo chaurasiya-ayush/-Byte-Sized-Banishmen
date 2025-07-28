@@ -1,6 +1,23 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { FaUserPlus, FaUsers, FaBell, FaFistRaised } from "react-icons/fa";
+import {
+  FaUserPlus,
+  FaUsers,
+  FaBell,
+  FaFistRaised,
+  FaUser,
+  FaFire,
+  FaTrophy,
+  FaSkull,
+  FaBook,
+  FaGamepad,
+  FaSearch,
+  FaInbox,
+  FaUserMinus,
+  FaBalanceScale,
+  FaClock,
+} from "react-icons/fa";
+import { GiDevilMask } from "react-icons/gi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import ChallengeModal from "../components/ChallengeModal";
@@ -18,16 +35,18 @@ const UserCard = ({ user, onAction, actionText, isFriend, actionIcon }) => (
   >
     <div className="flex-grow">
       <p
-        className="font-bold text-orange-200 text-lg"
+        className="font-bold text-orange-200 text-lg flex items-center gap-2"
         style={{ fontFamily: "Rajdhani, sans-serif" }}
       >
-        👤 {user.username}
+        <FaUser className="text-orange-400" />
+        {user.username}
       </p>
       <p
-        className="text-sm text-orange-300"
+        className="text-sm text-orange-300 flex items-center gap-2"
         style={{ fontFamily: "Rajdhani, sans-serif" }}
       >
-        🔥 Level {user.level} - {user.rank || "Apprentice"}
+        <FaFire className="text-orange-400" />
+        Level {user.level} - {user.rank || "Apprentice"}
       </p>
     </div>
     {onAction && (
@@ -60,10 +79,12 @@ const FriendsList = ({ friends, onChallenge }) => {
         animate={{ opacity: 1 }}
       >
         <p
-          className="text-orange-400 text-lg"
+          className="text-orange-400 text-lg flex items-center justify-center gap-2"
           style={{ fontFamily: "Rajdhani, sans-serif" }}
         >
-          👹 You haven't bound any souls... yet. 👹
+          <GiDevilMask />
+          You haven't bound any souls... yet.
+          <GiDevilMask />
         </p>
         <p className="text-red-300 text-sm mt-2">
           Find some challengers to forge unholy alliances!
@@ -101,10 +122,12 @@ const DuelsList = ({ duels, currentUserId, onPlay }) => {
         animate={{ opacity: 1 }}
       >
         <p
-          className="text-orange-400 text-lg"
+          className="text-orange-400 text-lg flex items-center justify-center gap-2"
           style={{ fontFamily: "Rajdhani, sans-serif" }}
         >
-          ⚔️ No active duels. Challenge a friend! ⚔️
+          <FaFistRaised className="text-orange-400" />
+          No active duels. Challenge a friend!
+          <FaFistRaised className="text-orange-400" />
         </p>
         <p className="text-red-300 text-sm mt-2">
           The arena awaits your battles...
@@ -129,10 +152,10 @@ const DuelsList = ({ duels, currentUserId, onPlay }) => {
         if (duel.status === "complete") {
           statusText =
             duel.winner === currentUserId
-              ? "🏆 Victory"
+              ? "Victory"
               : duel.winner === null
-              ? "⚖️ Draw"
-              : "💀 Defeat";
+              ? "Draw"
+              : "Defeat";
           statusColor =
             duel.winner === currentUserId
               ? "text-yellow-400"
@@ -140,10 +163,10 @@ const DuelsList = ({ duels, currentUserId, onPlay }) => {
               ? "text-orange-400"
               : "text-red-400";
         } else if (isMyTurn) {
-          statusText = "🔥 Your Turn!";
+          statusText = "Your Turn!";
           statusColor = "text-orange-400 animate-pulse";
         } else {
-          statusText = `⏳ Waiting for ${opponent.username}`;
+          statusText = `Waiting for ${opponent.username}`;
           statusColor = "text-gray-400";
         }
 
@@ -158,33 +181,59 @@ const DuelsList = ({ duels, currentUserId, onPlay }) => {
           >
             <div className="flex-grow">
               <p
-                className="font-bold text-orange-200 text-lg"
+                className="font-bold text-orange-200 text-lg flex items-center gap-2"
                 style={{ fontFamily: "Rajdhani, sans-serif" }}
               >
-                ⚔️ Duel vs. {opponent.username}
+                <FaFistRaised className="text-orange-400" />
+                Duel vs. {opponent.username}
               </p>
               <p
-                className="text-sm text-orange-300"
+                className="text-sm text-orange-300 flex items-center gap-1"
                 style={{ fontFamily: "Rajdhani, sans-serif" }}
               >
-                📚 Subject: {duel.subject}
+                <FaBook className="text-orange-400" />
+                Subject: {duel.subject}
               </p>
               <p
-                className={`text-sm font-bold ${statusColor}`}
+                className={`text-sm font-bold ${statusColor} flex items-center gap-1`}
                 style={{ fontFamily: "Rajdhani, sans-serif" }}
               >
-                {statusText}
+                {duel.status === "complete" ? (
+                  duel.winner === currentUserId ? (
+                    <>
+                      <FaTrophy className="text-yellow-400" /> {statusText}
+                    </>
+                  ) : duel.winner === null ? (
+                    <>
+                      <FaBalanceScale className="text-orange-400" />{" "}
+                      {statusText}
+                    </>
+                  ) : (
+                    <>
+                      <FaSkull className="text-red-400" /> {statusText}
+                    </>
+                  )
+                ) : isMyTurn ? (
+                  <>
+                    <FaFire className="text-orange-400" /> {statusText}
+                  </>
+                ) : (
+                  <>
+                    <FaClock className="text-gray-400" /> {statusText}
+                  </>
+                )}
               </p>
             </div>
             {isMyTurn && (
               <motion.button
                 onClick={() => onPlay(duel._id)}
-                className="font-bold py-3 px-6 rounded-lg text-sm bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg"
+                className="font-bold py-3 px-6 rounded-lg text-sm bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg flex items-center gap-2"
                 style={{ fontFamily: "Rajdhani, sans-serif" }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                🎮 Play
+                <FaGamepad />
+                Play
               </motion.button>
             )}
           </motion.div>
@@ -252,7 +301,7 @@ const FindPlayers = ({ token }) => {
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="🔍 Search for challengers by username..."
+        placeholder="Search for challengers by username..."
         className="w-full p-4 bg-gradient-to-r from-gray-900 to-red-900/50 border-2 border-gray-700 focus:border-orange-500 rounded-xl mb-6 focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-white placeholder-orange-300 transition-all duration-300"
         style={{ fontFamily: "Rajdhani, sans-serif" }}
         initial={{ opacity: 0, y: -20 }}
@@ -308,10 +357,11 @@ const FriendRequests = ({ requests, token, onUpdate }) => {
         animate={{ opacity: 1 }}
       >
         <p
-          className="text-orange-400 text-lg"
+          className="text-orange-400 text-lg flex items-center justify-center gap-2"
           style={{ fontFamily: "Rajdhani, sans-serif" }}
         >
-          📭 No new friend requests.
+          <FaInbox className="text-orange-400" />
+          No new friend requests.
         </p>
         <p className="text-red-300 text-sm mt-2">
           Your reputation precedes you...
@@ -332,16 +382,18 @@ const FriendRequests = ({ requests, token, onUpdate }) => {
         >
           <div className="flex-grow">
             <p
-              className="font-bold text-orange-200 text-lg"
+              className="font-bold text-orange-200 text-lg flex items-center gap-2"
               style={{ fontFamily: "Rajdhani, sans-serif" }}
             >
-              👤 {req.username}
+              <FaUser className="text-orange-400" />
+              {req.username}
             </p>
             <p
-              className="text-sm text-orange-300"
+              className="text-sm text-orange-300 flex items-center gap-1"
               style={{ fontFamily: "Rajdhani, sans-serif" }}
             >
-              🔥 Level {req.level} - {req.rank || "Apprentice"}
+              <FaFire className="text-orange-400" />
+              Level {req.level} - {req.rank || "Apprentice"}
             </p>
           </div>
           <div className="flex gap-3">
@@ -440,7 +492,7 @@ const SocialPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-black via-red-950 to-orange-950 text-white p-4 sm:p-8">
         <header className="text-center mb-12">
           <motion.h1
-            className="text-5xl font-black uppercase text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400"
+            className="text-5xl font-black uppercase text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 flex items-center justify-center gap-4"
             style={{
               fontFamily: "Orbitron, monospace",
               textShadow: "0 0 20px rgba(220, 38, 38, 0.5)",
@@ -449,17 +501,20 @@ const SocialPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            🔥 The Soul-Binding 🔥
+            <FaFire className="text-orange-400" />
+            The Soul-Binding
+            <FaFire className="text-orange-400" />
           </motion.h1>
           <motion.p
-            className="text-orange-200 mt-4 text-lg"
+            className="text-orange-200 mt-4 text-lg flex items-center justify-center gap-2"
             style={{ fontFamily: "Rajdhani, sans-serif" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
           >
             Forge unholy alliances and challenge your rivals in the fires of
-            coding hell 😈
+            coding hell
+            <GiDevilMask className="text-red-400" />
           </motion.p>
           <motion.button
             onClick={() => navigate("/dashboard")}

@@ -1,5 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { FaExclamationTriangle, FaShieldAlt, FaRunning } from "react-icons/fa";
 
 const QuitModal = ({ isOpen, onConfirm, onCancel }) => {
   if (!isOpen) return null;
@@ -19,6 +20,9 @@ const QuitModal = ({ isOpen, onConfirm, onCancel }) => {
           exit={{ scale: 0.7, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
         >
+          <div className="text-6xl text-orange-400 text-center mb-4">
+            <FaExclamationTriangle />
+          </div>
           <h2 className="text-2xl font-bold text-center mb-4 text-red-400">
             Abandon Trial?
           </h2>
@@ -29,14 +33,16 @@ const QuitModal = ({ isOpen, onConfirm, onCancel }) => {
           <div className="flex justify-center gap-4">
             <button
               onClick={onCancel}
-              className="font-bold py-2 px-8 rounded-lg bg-gray-600 hover:bg-gray-500 transition-colors"
+              className="font-bold py-2 px-8 rounded-lg bg-gray-600 hover:bg-gray-500 transition-colors flex items-center gap-2"
             >
+              <FaShieldAlt className="text-base" />
               Stay
             </button>
             <button
               onClick={onConfirm}
-              className="font-bold py-2 px-8 rounded-lg bg-red-600 hover:bg-red-500 transition-colors"
+              className="font-bold py-2 px-8 rounded-lg bg-red-600 hover:bg-red-500 transition-colors flex items-center gap-2"
             >
+              <FaRunning className="text-base" />
               Flee
             </button>
           </div>

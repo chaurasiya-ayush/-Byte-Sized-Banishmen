@@ -3,7 +3,23 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaHeart } from "react-icons/fa";
+import {
+  FaHeart,
+  FaChartLine,
+  FaEye,
+  FaEyeSlash,
+  FaStar,
+  FaFire,
+  FaBolt,
+  FaSkull,
+  FaRunning,
+  FaCode,
+  FaPaperPlane,
+  FaExclamationTriangle,
+} from "react-icons/fa";
+import { HiChartBar } from "react-icons/hi";
+import { MdVisibility, MdVisibilityOff } from "react-icons/md";
+import { GiDevilMask } from "react-icons/gi";
 
 import DevilDialogue from "./components/DevilDialogue";
 import StatusBar from "./components/StatusBar";
@@ -68,7 +84,14 @@ const GauntletPage = () => {
 
   const handleSubmit = async () => {
     if (userAnswer === "") {
-      toast("You must provide an answer.", { icon: "🤔" });
+      toast("You must provide an answer.", {
+        icon: <FaExclamationTriangle className="text-yellow-400" />,
+        style: {
+          background: "#1f2937",
+          color: "#f3f4f6",
+          border: "1px solid #374151",
+        },
+      });
       return;
     }
     setLoading(true);
@@ -104,7 +127,15 @@ const GauntletPage = () => {
       }
 
       // ... (rest of the toast and state update logic remains the same)
-      const toastOptions = { duration: 2000, position: "bottom-center" };
+      const toastOptions = {
+        duration: 2000,
+        position: "bottom-center",
+        style: {
+          background: "#1f2937",
+          color: "#f3f4f6",
+          border: "1px solid #374151",
+        },
+      };
       if (data.feedback.text.includes("Level")) {
         toast.success(data.feedback.text, {
           ...toastOptions,
@@ -112,9 +143,21 @@ const GauntletPage = () => {
           icon: "🎉",
         });
       } else if (data.result === "correct") {
-        toast.success("Correct!", toastOptions);
+        toast.success("Correct Answer!", {
+          ...toastOptions,
+          style: {
+            ...toastOptions.style,
+            border: "1px solid #16a34a",
+          },
+        });
       } else {
-        toast.error("Incorrect!", toastOptions);
+        toast.error("Incorrect Answer!", {
+          ...toastOptions,
+          style: {
+            ...toastOptions.style,
+            border: "1px solid #dc2626",
+          },
+        });
       }
       setCurrentQuestion(data.nextQuestion);
       setStats((prev) => ({
@@ -130,7 +173,14 @@ const GauntletPage = () => {
   };
 
   const handleQuit = () => {
-    toast("You have fled the trial.", { icon: " cowardly 🏃" });
+    toast("You have fled the trial.", {
+      icon: <FaRunning className="text-orange-400" />,
+      style: {
+        background: "#1f2937",
+        color: "#f3f4f6",
+        border: "1px solid #374151",
+      },
+    });
     navigate("/dashboard");
   };
 
@@ -143,7 +193,9 @@ const GauntletPage = () => {
     return (
       <div className="bg-gradient-to-br from-gray-950 to-red-900 text-white min-h-screen flex justify-center items-center">
         <div className="text-center">
-          <div className="text-6xl mb-4 animate-pulse">😈</div>
+          <div className="text-6xl mb-4 animate-pulse text-red-400">
+            <GiDevilMask />
+          </div>
           <p
             className="text-2xl font-bold text-red-400"
             style={{ fontFamily: "'Orbitron', monospace" }}
@@ -191,8 +243,18 @@ const GauntletPage = () => {
             whileTap={{ scale: 0.98 }}
             title={isStatusBarOpen ? "Hide Status Bar" : "Show Status Bar"}
           >
-            <span className="text-sm font-bold">
-              {isStatusBarOpen ? "📊 Hide" : "📊 Show"}
+            <span className="text-sm font-bold flex items-center gap-2">
+              {isStatusBarOpen ? (
+                <>
+                  <MdVisibilityOff className="text-base" />
+                  Hide
+                </>
+              ) : (
+                <>
+                  <MdVisibility className="text-base" />
+                  Show
+                </>
+              )}
             </span>
           </motion.button>
 
@@ -204,12 +266,7 @@ const GauntletPage = () => {
             transition={{ duration: 0.3 }}
           >
             <div className="flex items-center gap-2">
-              <span
-                className="text-red-400 text-xs font-bold"
-                style={{ fontFamily: "'Orbitron', monospace" }}
-              >
-                💀
-              </span>
+              <FaSkull className="text-red-400 text-sm" />
               <div className="flex gap-1">
                 {Array.from({ length: 3 }, (_, i) => (
                   <motion.div
@@ -248,7 +305,7 @@ const GauntletPage = () => {
                 transition={{ duration: 0.2 }}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-yellow-400 text-xs">⭐</span>
+                  <FaStar className="text-yellow-400 text-xs" />
                   <span
                     className="text-yellow-300 font-bold text-xs"
                     style={{ fontFamily: "'Orbitron', monospace" }}
@@ -257,7 +314,7 @@ const GauntletPage = () => {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-orange-400 text-xs">🔥</span>
+                  <FaFire className="text-orange-400 text-xs" />
                   <span
                     className="text-orange-300 font-bold text-xs"
                     style={{ fontFamily: "'Orbitron', monospace" }}
@@ -266,7 +323,7 @@ const GauntletPage = () => {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-green-400 text-xs">⚡</span>
+                  <FaBolt className="text-green-400 text-xs" />
                   <span
                     className="text-green-300 font-bold text-xs"
                     style={{ fontFamily: "'Orbitron', monospace" }}
@@ -352,21 +409,32 @@ const GauntletPage = () => {
               <div className="mt-8 flex justify-between items-center">
                 <button
                   onClick={() => setQuitModalOpen(true)}
-                  className="bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-red-300 font-bold py-3 px-6 rounded-lg transition-all border border-gray-600 hover:border-red-500"
+                  className="bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-red-300 font-bold py-3 px-6 rounded-lg transition-all border border-gray-600 hover:border-red-500 flex items-center gap-2"
                   style={{ fontFamily: "'Orbitron', monospace" }}
                 >
-                  🏃 Abandon Trial
+                  <FaRunning className="text-base" />
+                  Abandon Trial
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white font-bold py-3 px-12 rounded-lg text-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:scale-100 shadow-lg"
+                  className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white font-bold py-3 px-12 rounded-lg text-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:scale-100 shadow-lg flex items-center gap-2"
                   style={{
                     fontFamily: "'Orbitron', monospace",
                     boxShadow: "0 0 20px rgba(220, 38, 38, 0.4)",
                   }}
                 >
-                  {loading ? "⚡ Judging..." : "🔥 Submit Answer"}
+                  {loading ? (
+                    <>
+                      <FaBolt className="text-base animate-pulse" />
+                      Judging...
+                    </>
+                  ) : (
+                    <>
+                      <FaPaperPlane className="text-base" />
+                      Submit Answer
+                    </>
+                  )}
                 </button>
               </div>
             </div>

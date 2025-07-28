@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Editor from "@monaco-editor/react";
+import { FaJs, FaPython, FaJava } from "react-icons/fa";
+import { SiCplusplus, SiJavascript } from "react-icons/si";
+import { FaBolt, FaCode, FaUser } from "react-icons/fa";
 
 const CodeEditorComponent = ({ onCodeChange, value, language }) => {
   const [userSelectedLanguage, setUserSelectedLanguage] = useState(null);
@@ -18,10 +21,22 @@ const CodeEditorComponent = ({ onCodeChange, value, language }) => {
   // Get available languages for multi-language subjects
   const getAvailableLanguages = () => {
     return [
-      { id: "javascript", name: "JavaScript", icon: "🟨" },
-      { id: "python", name: "Python", icon: "🐍" },
-      { id: "java", name: "Java", icon: "☕" },
-      { id: "cpp", name: "C++", icon: "⚡" },
+      {
+        id: "javascript",
+        name: "JavaScript",
+        icon: <SiJavascript className="text-yellow-400" />,
+      },
+      {
+        id: "python",
+        name: "Python",
+        icon: <FaPython className="text-blue-400" />,
+      },
+      { id: "java", name: "Java", icon: <FaJava className="text-red-400" /> },
+      {
+        id: "cpp",
+        name: "C++",
+        icon: <SiCplusplus className="text-blue-600" />,
+      },
     ];
   };
 
@@ -180,7 +195,9 @@ const CodeEditorComponent = ({ onCodeChange, value, language }) => {
       <div className="bg-gradient-to-r from-black/80 to-red-900/40 px-4 py-3 border-b border-red-600/50">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">👨‍💻</span>
+            <span className="text-2xl text-orange-400">
+              <FaCode />
+            </span>
             <span
               className="text-sm text-gray-200 font-mono"
               style={{ fontFamily: "'Orbitron', monospace" }}
@@ -211,10 +228,11 @@ const CodeEditorComponent = ({ onCodeChange, value, language }) => {
           <div className="mt-3 pt-3 border-t border-red-600/30">
             <div className="flex items-center gap-3 flex-wrap">
               <span
-                className="text-xs text-orange-400 font-mono font-bold"
+                className="text-xs text-orange-400 font-mono font-bold flex items-center gap-1"
                 style={{ fontFamily: "'Orbitron', monospace" }}
               >
-                🔥 Choose Your Weapon:
+                <FaBolt className="text-orange-400" />
+                Choose Your Weapon:
               </span>
               {availableLanguages.map((lang) => (
                 <button

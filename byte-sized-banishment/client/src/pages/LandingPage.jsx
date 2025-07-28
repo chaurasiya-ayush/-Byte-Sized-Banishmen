@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import AuthModal from "../components/AuthModal";
+import { FaFire, FaSkull, FaCode, FaRocket, FaBolt } from "react-icons/fa";
+import { GiDevilMask } from "react-icons/gi";
 
 // Coding syntax symbols as particles
 const PARTICLES = [
@@ -171,7 +173,6 @@ const LandingPage = () => {
           >
             BANISHMENT
           </span>
-          <span className="ml-2 text-4xl md:text-6xl text-orange-400">🔥</span>
           {/* Simplified animated overlay */}
         </motion.h1>
         <motion.p
@@ -201,13 +202,15 @@ const LandingPage = () => {
           claim your place among the elite.
           <br />
           <span
-            className="font-black text-white text-xl md:text-2xl mt-3 block"
+            className="font-black text-white text-xl md:text-2xl mt-3 flex items-center justify-center gap-3"
             style={{
               fontFamily: "'Bebas Neue', cursive",
               letterSpacing: "0.1em",
             }}
           >
-            ⚡ YOUR CODING DESTINY AWAITS ⚡
+            <FaBolt className="text-yellow-400" />
+            YOUR CODING DESTINY AWAITS
+            <FaBolt className="text-yellow-400" />
           </span>
         </motion.p>
         <motion.button
@@ -226,11 +229,20 @@ const LandingPage = () => {
             textShadow: "0 2px 8px rgba(0,0,0,0.6)",
           }}
         >
-          {currentUser ? "🔥 ENTER THE GAUNTLET 🔥" : "💀 BEGIN YOUR TRIAL 💀"}
+          {currentUser ? (
+            <>
+              <FaFire className="inline mr-2" />
+              ENTER THE GAUNTLET
+              <FaFire className="inline ml-2" />
+            </>
+          ) : (
+            <>
+              <FaSkull className="inline mr-2" />
+              BEGIN YOUR TRIAL
+              <FaSkull className="inline ml-2" />
+            </>
+          )}
           {/* Simplified devil tail */}
-          <span className="absolute right-3 -bottom-5 text-2xl select-none pointer-events-none opacity-80 group-hover:opacity-100">
-            😈
-          </span>
         </motion.button>
       </motion.section>
 
@@ -256,21 +268,13 @@ const LandingPage = () => {
         >
           <motion.span
             aria-label="demon"
-            className="text-5xl"
+            className="text-5xl text-red-500"
             animate={{ rotate: [0, 10, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
-            😈
+            <GiDevilMask />
           </motion.span>
           MEET THE DEVIL'S CODERS
-          <motion.span
-            aria-label="fire"
-            className="text-4xl text-orange-400"
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            🔥
-          </motion.span>
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-5">
           {TEAM_MEMBERS.map((member, idx) => (
@@ -313,7 +317,9 @@ const LandingPage = () => {
                   }}
                 >
                   {member.name}
-                  <span className="text-lg text-orange-400">🔥</span>
+                  <span className="text-lg text-orange-400">
+                    <FaFire />
+                  </span>
                 </h3>
                 <p
                   className="font-bold text-red-300 mb-1"

@@ -1,6 +1,20 @@
 import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import {
+  FaUser,
+  FaClock,
+  FaLink,
+  FaWrench,
+  FaComments,
+  FaTools,
+  FaCheck,
+  FaTimes,
+  FaEnvelope,
+  FaSync,
+  FaHome,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 
 const VerificationError = () => {
   const navigate = useNavigate();
@@ -14,34 +28,34 @@ const VerificationError = () => {
           title: "User Not Found",
           message:
             "The verification link is invalid. The user account could not be found.",
-          icon: "👤",
+          icon: <FaUser className="text-red-400" />,
         };
       case "token-expired":
         return {
           title: "Link Expired",
           message:
             "This verification link has expired. Please request a new verification email.",
-          icon: "⏰",
+          icon: <FaClock className="text-yellow-400" />,
         };
       case "invalid-token":
         return {
           title: "Invalid Link",
           message:
             "This verification link is invalid or has already been used.",
-          icon: "🔗",
+          icon: <FaLink className="text-red-400" />,
         };
       case "already-verified":
         return {
           title: "Already Verified",
           message:
             "This email address has already been verified. You can log in to your account.",
-          icon: "✅",
+          icon: <FaCheck className="text-green-400" />,
         };
       default:
         return {
           title: "Verification Failed",
           message: "An unexpected error occurred during email verification.",
-          icon: "❌",
+          icon: <FaTimes className="text-red-400" />,
         };
     }
   };
@@ -97,24 +111,33 @@ const VerificationError = () => {
 
             {/* Help Section */}
             <div className="bg-gray-700/50 rounded-lg p-4 mb-6 text-left">
-              <h3 className="text-red-400 font-semibold mb-3 text-center">
-                🔧 What you can do:
+              <h3 className="text-red-400 font-semibold mb-3 text-center flex items-center justify-center gap-2">
+                <FaWrench className="text-red-400" />
+                What you can do:
               </h3>
               <ul className="space-y-2 text-sm text-gray-300">
                 <li className="flex items-center">
-                  <span className="text-orange-400 mr-2">📧</span>
+                  <span className="text-orange-400 mr-2">
+                    <FaEnvelope />
+                  </span>
                   Check your email for a newer verification link
                 </li>
                 <li className="flex items-center">
-                  <span className="text-orange-400 mr-2">🔄</span>
+                  <span className="text-orange-400 mr-2">
+                    <FaSync />
+                  </span>
                   Try registering again if the link is very old
                 </li>
                 <li className="flex items-center">
-                  <span className="text-orange-400 mr-2">💬</span>
+                  <span className="text-orange-400 mr-2">
+                    <FaComments />
+                  </span>
                   Contact support if the problem persists
                 </li>
                 <li className="flex items-center">
-                  <span className="text-orange-400 mr-2">🏠</span>
+                  <span className="text-orange-400 mr-2">
+                    <FaHome />
+                  </span>
                   Return to homepage and try logging in
                 </li>
               </ul>
@@ -126,9 +149,10 @@ const VerificationError = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => navigate("/")}
-                className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
               >
-                🏠 Back to Homepage
+                <FaHome />
+                Back to Homepage
               </motion.button>
 
               <motion.button
@@ -138,9 +162,10 @@ const VerificationError = () => {
                   (window.location.href =
                     "mailto:support@byte-sized-banishment.com")
                 }
-                className="w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300"
+                className="w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
               >
-                📧 Contact Support
+                <FaEnvelope />
+                Contact Support
               </motion.button>
             </div>
           </motion.div>
@@ -157,20 +182,23 @@ const VerificationError = () => {
             <motion.span
               animate={{ rotate: [0, -10, 10, -10, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="text-red-400"
             >
-              🔧
+              <FaWrench />
             </motion.span>
             <motion.span
               animate={{ y: [0, -5, 0] }}
               transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+              className="text-yellow-400"
             >
-              ⚠️
+              <FaExclamationTriangle />
             </motion.span>
             <motion.span
               animate={{ rotate: [0, 10, -10, 10, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="text-orange-400"
             >
-              🔧
+              <FaTools />
             </motion.span>
           </div>
           <p className="text-gray-500 text-sm mt-2">

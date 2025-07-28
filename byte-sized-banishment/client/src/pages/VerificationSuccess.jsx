@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import {
+  FaFire,
+  FaBolt,
+  FaFistRaised,
+  FaTrophy,
+  FaRocket,
+  FaCog,
+  FaDesktop,
+  FaWrench,
+  FaUsers,
+} from "react-icons/fa";
 
 const VerificationSuccess = () => {
   const navigate = useNavigate();
@@ -76,24 +87,33 @@ const VerificationSuccess = () => {
 
             {/* Features List */}
             <div className="bg-gray-700/50 rounded-lg p-4 mb-6 text-left">
-              <h3 className="text-orange-400 font-semibold mb-3 text-center">
-                🔥 You can now:
+              <h3 className="text-orange-400 font-semibold mb-3 text-center flex items-center justify-center gap-2">
+                <FaFire className="text-orange-400" />
+                You can now:
               </h3>
               <ul className="space-y-2 text-sm text-gray-300">
                 <li className="flex items-center">
-                  <span className="text-green-400 mr-2">⚡</span>
+                  <span className="text-green-400 mr-2">
+                    <FaBolt />
+                  </span>
                   Access coding challenges and gauntlets
                 </li>
                 <li className="flex items-center">
-                  <span className="text-green-400 mr-2">⚔️</span>
+                  <span className="text-green-400 mr-2">
+                    <FaFistRaised />
+                  </span>
                   Battle other developers in duels
                 </li>
                 <li className="flex items-center">
-                  <span className="text-green-400 mr-2">🏆</span>
+                  <span className="text-green-400 mr-2">
+                    <FaTrophy />
+                  </span>
                   Climb the global leaderboards
                 </li>
                 <li className="flex items-center">
-                  <span className="text-green-400 mr-2">👥</span>
+                  <span className="text-green-400 mr-2">
+                    <FaUsers />
+                  </span>
                   Connect with fellow coders
                 </li>
               </ul>
@@ -105,9 +125,10 @@ const VerificationSuccess = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => navigate("/")}
-                className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
               >
-                🚀 Start Coding Journey
+                <FaRocket />
+                Start Coding Journey
               </motion.button>
 
               <p className="text-xs text-gray-400">
@@ -128,8 +149,9 @@ const VerificationSuccess = () => {
             <motion.span
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              className="text-orange-400"
             >
-              ⚙️
+              <FaCog />
             </motion.span>
             <motion.span
               animate={{ y: [0, -10, 0] }}
@@ -138,14 +160,16 @@ const VerificationSuccess = () => {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
+              className="text-blue-400"
             >
-              💻
+              <FaDesktop />
             </motion.span>
             <motion.span
               animate={{ rotate: -360 }}
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              className="text-green-400"
             >
-              🔧
+              <FaWrench />
             </motion.span>
           </div>
           <p className="text-gray-500 text-sm mt-2">

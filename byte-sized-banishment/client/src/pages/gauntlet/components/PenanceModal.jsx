@@ -1,5 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { GiDevilMask } from "react-icons/gi";
+import { FaScroll, FaFire } from "react-icons/fa";
 
 const PenanceModal = ({ punishment, onAcknowledge }) => {
   if (!punishment) return null;
@@ -24,7 +26,9 @@ const PenanceModal = ({ punishment, onAcknowledge }) => {
           transition={{ type: "tween", duration: 0.4, ease: "easeOut" }}
         >
           {/* Simple devil header */}
-          <div className="text-5xl mb-3">😈</div>
+          <div className="text-5xl mb-3 text-red-500">
+            <GiDevilMask />
+          </div>
 
           <h1
             className="text-2xl font-bold text-red-400 mb-3"
@@ -51,7 +55,7 @@ const PenanceModal = ({ punishment, onAcknowledge }) => {
             }}
           >
             <div className="flex items-center justify-center mb-2">
-              <span className="text-xl mr-2">📜</span>
+              <FaScroll className="text-xl mr-2 text-orange-400" />
               <span
                 className="text-xs text-orange-400 font-bold"
                 style={{ fontFamily: "'Orbitron', monospace" }}
@@ -78,7 +82,7 @@ const PenanceModal = ({ punishment, onAcknowledge }) => {
 
           <motion.button
             onClick={onAcknowledge}
-            className="font-bold py-3 px-8 rounded-lg bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white text-lg transition-all border border-red-500/50"
+            className="font-bold py-3 px-8 rounded-lg bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white text-lg transition-all border border-red-500/50 flex items-center gap-2 justify-center"
             style={{
               fontFamily: "'Orbitron', monospace",
               boxShadow: "0 0 15px rgba(220, 38, 38, 0.3)",
@@ -87,7 +91,7 @@ const PenanceModal = ({ punishment, onAcknowledge }) => {
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.2 }}
           >
-            🔥 I Accept
+            <FaFire className="text-base" />I Accept
           </motion.button>
         </motion.div>
       </motion.div>

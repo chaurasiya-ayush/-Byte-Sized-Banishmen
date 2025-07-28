@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { FaFire } from "react-icons/fa";
 
 const MCQComponent = ({ options, onAnswerSelect, selectedAnswer }) => {
   return (
@@ -55,12 +56,12 @@ const MCQComponent = ({ options, onAnswerSelect, selectedAnswer }) => {
           {/* Selected indicator */}
           {selectedAnswer === index.toString() && (
             <motion.div
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-2xl"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-2xl text-orange-400"
               initial={{ scale: 0, rotate: 180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
-              🔥
+              <FaFire />
             </motion.div>
           )}
         </motion.button>

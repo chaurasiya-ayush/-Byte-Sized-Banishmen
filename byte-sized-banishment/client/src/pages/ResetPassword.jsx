@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { FaExclamationTriangle } from "react-icons/fa";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -108,8 +109,9 @@ const ResetPassword = () => {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-red-400 mb-2 font-mono">
-              ⚠️ Invalid Link
+            <h2 className="text-2xl font-bold text-red-400 mb-2 font-mono flex items-center justify-center gap-2">
+              <FaExclamationTriangle className="text-red-400" />
+              Invalid Link
             </h2>
             <p className="text-gray-300 text-sm">
               This password reset link has expired or is invalid.

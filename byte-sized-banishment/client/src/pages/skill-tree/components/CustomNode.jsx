@@ -88,10 +88,11 @@ const CustomNode = ({ data }) => {
 
       <div className="mb-3">
         <p
-          className="text-xs text-orange-300 mb-2"
+          className="text-xs text-orange-300 mb-2 flex items-center gap-1"
           style={{ fontFamily: "Rajdhani, sans-serif" }}
         >
-          🔥 Progress: {progress.correct} / {progress.total}
+          <FaFire className="text-orange-400" />
+          Progress: {progress.correct} / {progress.total}
         </p>
         <div className="w-full bg-gray-800 rounded-full h-3 border border-gray-600">
           <motion.div
@@ -117,32 +118,37 @@ const CustomNode = ({ data }) => {
 
       {status === "mastered" && (
         <motion.div
-          className="text-center text-yellow-400 text-xs font-bold"
+          className="text-center text-yellow-400 text-xs font-bold flex items-center justify-center gap-1"
           style={{ fontFamily: "Rajdhani, sans-serif" }}
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          👑 MASTERED 👑
+          <FaCrown className="text-yellow-400" />
+          MASTERED
+          <FaCrown className="text-yellow-400" />
         </motion.div>
       )}
 
       {status === "unlocked" && (
         <motion.div
-          className="text-center text-orange-400 text-xs font-bold"
+          className="text-center text-orange-400 text-xs font-bold flex items-center justify-center gap-1"
           style={{ fontFamily: "Rajdhani, sans-serif" }}
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 1.5, repeat: Infinity }}
         >
-          🔥 AVAILABLE 🔥
+          <FaFire className="text-orange-400" />
+          AVAILABLE
+          <FaFire className="text-orange-400" />
         </motion.div>
       )}
 
       {status === "locked" && (
         <div
-          className="text-center text-gray-500 text-xs font-bold"
+          className="text-center text-gray-500 text-xs font-bold flex items-center justify-center gap-1"
           style={{ fontFamily: "Rajdhani, sans-serif" }}
         >
-          🔒 LOCKED
+          <FaLock className="text-gray-500" />
+          LOCKED
         </div>
       )}
 
