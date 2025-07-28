@@ -10,20 +10,73 @@ const SkillTreePage = () => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [subject, setSubject] = useState("JavaScript"); // Default subject
+  const [availableSubjects, setAvailableSubjects] = useState([]);
+  const [subject, setSubject] = useState(""); // Will be set dynamically
   const navigate = useNavigate();
 
   // The custom node types need to be memoized to prevent re-renders
   const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
 
+  // Fetch available subjects from backend
   useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          toast.error("No authentication token found.");
+          navigate("/");
+          return;
+        }
+
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        console.log(
+          "Fetching subjects from:",
+          "http://localhost:5000/api/gauntlet/subjects"
+        );
+
+        const { data } = await axios.get(
+          "http://localhost:5000/api/gauntlet/subjects",
+          config
+        );
+
+        console.log("Subjects response:", data);
+
+        if (data.success && data.subjects && data.subjects.length > 0) {
+          setAvailableSubjects(data.subjects);
+          // Set the first subject as default if no subject is selected
+          if (!subject) {
+            setSubject(data.subjects[0]);
+          }
+        } else {
+          console.error("No subjects in response:", data);
+          toast.error("No subjects available.");
+          navigate("/dashboard");
+        }
+      } catch (error) {
+        console.error("Error fetching subjects:", error);
+        console.error("Response data:", error.response?.data);
+        toast.error(
+          `Failed to load subjects: ${
+            error.response?.data?.message || error.message
+          }`
+        );
+        navigate("/dashboard");
+      }
+    };
+
+    fetchSubjects();
+  }, [navigate, subject]);
+
+  useEffect(() => {
+    if (!subject) return; // Don't fetch skill tree until we have a subject
+
     const fetchSkillTree = async () => {
       setLoading(true);
       try {
         const token = localStorage.getItem("authToken");
         const config = { headers: { Authorization: `Bearer ${token}` } };
         const { data } = await axios.get(
-          `http://localhost:5000/api/skill-tree/${subject}`,
+          `http://localhost:5000/api/skill-tree/${encodeURIComponent(subject)}`,
           config
         );
 
@@ -77,15 +130,26 @@ const SkillTreePage = () => {
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           className="bg-gray-800 border border-gray-700 rounded-lg p-2"
+          disabled={availableSubjects.length === 0}
         >
-          <option value="JavaScript">JavaScript</option>
-          <option value="Python">Python</option>
-          <option value="Data Structures">Data Structures</option>
+          {availableSubjects.length === 0 ? (
+            <option value="">Loading subjects...</option>
+          ) : (
+            availableSubjects.map((subjectName) => (
+              <option key={subjectName} value={subjectName}>
+                {subjectName}
+              </option>
+            ))
+          )}
         </select>
       </header>
       {loading ? (
         <div className="flex justify-center items-center h-full">
-          <p className="text-2xl animate-pulse">Forging the Devil's Path...</p>
+          <p className="text-2xl animate-pulse">
+            {availableSubjects.length === 0
+              ? "Loading available subjects..."
+              : "Forging the Devil's Path..."}
+          </p>
         </div>
       ) : (
         <ReactFlow
