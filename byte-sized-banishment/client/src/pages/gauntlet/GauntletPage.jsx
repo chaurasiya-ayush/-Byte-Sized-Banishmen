@@ -33,7 +33,11 @@ const GauntletPage = () => {
   });
   const [isQuitModalOpen, setQuitModalOpen] = useState(false);
   const [activePenance, setActivePenance] = useState(null); // <-- NEW STATE FOR PUNISHMENT
-  const [isStatusBarOpen, setIsStatusBarOpen] = useState(true); // <-- NEW STATE FOR STATUS BAR TOGGLE
+  const [isStatusBarOpen, setIsStatusBarOpen] = useState(() => {
+    // Load from localStorage, default to false (hidden)
+    const saved = localStorage.getItem("gauntlet-status-bar-open");
+    return saved ? JSON.parse(saved) : false;
+  }); // <-- NEW STATE FOR STATUS BAR TOGGLE
 
   useEffect(() => {
     if (!session) {
@@ -41,6 +45,14 @@ const GauntletPage = () => {
       navigate("/dashboard");
     }
   }, [session, navigate]);
+
+  // Persist status bar state to localStorage
+  useEffect(() => {
+    localStorage.setItem(
+      "gauntlet-status-bar-open",
+      JSON.stringify(isStatusBarOpen)
+    );
+  }, [isStatusBarOpen]);
 
   useEffect(() => {
     if (currentQuestion) {
