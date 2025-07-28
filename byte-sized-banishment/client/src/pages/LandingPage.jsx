@@ -173,13 +173,6 @@ const LandingPage = () => {
           </span>
           <span className="ml-2 text-4xl md:text-6xl text-orange-400">🔥</span>
           {/* Simplified animated overlay */}
-          <motion.span
-            className="absolute left-1/2 -top-8 -translate-x-1/2 text-5xl select-none pointer-events-none"
-            animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          >
-            😈
-          </motion.span>
         </motion.h1>
         <motion.p
           custom={0}

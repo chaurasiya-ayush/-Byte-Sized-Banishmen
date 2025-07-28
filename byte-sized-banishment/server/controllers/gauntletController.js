@@ -7,6 +7,13 @@ import {
   validateAnswer,
   findWeakestLink,
 } from "../services/aiServices.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Get current directory for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // --- Helper Functions ---
 const XP_VALUES = { easy: 10, medium: 25, hard: 50 };
@@ -16,12 +23,35 @@ const RANK_THRESHOLDS = {
   10: "Byte Fiend",
   20: "Code Devil",
 };
+
 const getRankForLevel = (level) => {
   let currentRank = "Novice";
   for (const threshold in RANK_THRESHOLDS) {
     if (level >= threshold) currentRank = RANK_THRESHOLDS[threshold];
   }
   return currentRank;
+};
+
+// Generate devilish punishments from JSON file
+const generatePunishment = () => {
+  try {
+    // Read the penance.json file
+    const penanceFilePath = path.join(__dirname, "../data/penance.json");
+    const penanceData = fs.readFileSync(penanceFilePath, "utf8");
+    const punishments = JSON.parse(penanceData);
+
+    // Select a random punishment
+    const randomIndex = Math.floor(Math.random() * punishments.length);
+    return punishments[randomIndex];
+  } catch (error) {
+    console.error("Error reading penance.json:", error);
+    // Fallback punishment if file reading fails
+    return {
+      task: "Reflect on your coding mistakes and try again with renewed determination.",
+      quote:
+        "Even the devil's files can sometimes be corrupted. Learn from this failure.",
+    };
+  }
 };
 
 // --- Controller Functions ---
@@ -178,10 +208,15 @@ export const submitAnswer = async (req, res) => {
     if (session.strikesLeft <= 0) {
       session.isActive = false;
       await Promise.all([session.save(), user.save()]);
+
+      // Generate random devilish punishment from penance.json
+      const punishment = generatePunishment();
+
       return res.json({
         result: "incorrect",
         feedback: getDevilDialogue("GAME_OVER"),
         isGameOver: true,
+        punishment: punishment,
       });
     }
 

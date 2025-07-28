@@ -4,6 +4,7 @@ import "reactflow/dist/style.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 import CustomNode from "./components/CustomNode";
 
 const SkillTreePage = () => {
@@ -98,7 +99,15 @@ const SkillTreePage = () => {
             source: edge.from,
             target: edge.to,
             animated: true,
-            style: { stroke: "#ff0000" },
+            style: {
+              stroke: "#f97316",
+              strokeWidth: 2,
+              filter: "drop-shadow(0 0 5px rgba(249, 115, 22, 0.5))",
+            },
+            markerEnd: {
+              type: "arrowclosed",
+              color: "#f97316",
+            },
           }));
 
           setNodes(flowNodes);
@@ -118,50 +127,152 @@ const SkillTreePage = () => {
   }, [subject, navigate]);
 
   return (
-    <div className="w-full h-screen bg-gray-900 text-white">
-      <header className="absolute top-0 left-0 z-10 p-4 flex items-center space-x-4">
-        <button
+    <div className="w-full h-screen bg-gradient-to-br from-black via-red-950 to-orange-950 text-white flex flex-col">
+      <motion.header
+        className="relative z-10 p-6 flex flex-wrap items-center gap-4 bg-gradient-to-r from-black/90 to-red-950/90 backdrop-blur-sm border-b-2 border-orange-600/30"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <motion.button
           onClick={() => navigate("/dashboard")}
-          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg"
+          className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold py-2 px-4 rounded-lg border border-red-500 transition-all duration-300 shadow-lg hover:shadow-red-500/25"
+          style={{ fontFamily: "Rajdhani, sans-serif" }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          &larr; Back to Dashboard
-        </button>
-        <select
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          className="bg-gray-800 border border-gray-700 rounded-lg p-2"
-          disabled={availableSubjects.length === 0}
+          ← Back to Dashboard
+        </motion.button>
+
+        <div className="flex flex-col">
+          <label
+            className="text-orange-300 text-xs mb-1 font-bold"
+            style={{ fontFamily: "Rajdhani, sans-serif" }}
+          >
+            🔥 Choose Your Path:
+          </label>
+          <motion.select
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            className="bg-gradient-to-r from-gray-900 to-red-900/50 border-2 border-orange-600/50 rounded-lg p-2 text-orange-200 font-bold min-w-[180px] focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+            style={{ fontFamily: "Rajdhani, sans-serif" }}
+            disabled={availableSubjects.length === 0}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            {availableSubjects.length === 0 ? (
+              <option value="">🔄 Loading...</option>
+            ) : (
+              availableSubjects.map((subjectName) => (
+                <option
+                  key={subjectName}
+                  value={subjectName}
+                  className="bg-gray-900"
+                >
+                  🎯 {subjectName}
+                </option>
+              ))
+            )}
+          </motion.select>
+        </div>
+
+        {/* Title */}
+        <motion.div
+          className="flex-1 text-center lg:text-left"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
         >
-          {availableSubjects.length === 0 ? (
-            <option value="">Loading subjects...</option>
-          ) : (
-            availableSubjects.map((subjectName) => (
-              <option key={subjectName} value={subjectName}>
-                {subjectName}
-              </option>
-            ))
-          )}
-        </select>
-      </header>
-      {loading ? (
-        <div className="flex justify-center items-center h-full">
-          <p className="text-2xl animate-pulse">
-            {availableSubjects.length === 0
-              ? "Loading available subjects..."
-              : "Forging the Devil's Path..."}
+          <h1
+            className="text-2xl lg:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400"
+            style={{ fontFamily: "Orbitron, monospace" }}
+          >
+            🔥 Devil's Skill Tree 🔥
+          </h1>
+          <p
+            className="text-orange-300 text-xs lg:text-sm mt-1"
+            style={{ fontFamily: "Rajdhani, sans-serif" }}
+          >
+            Master the dark arts of coding... one skill at a time 😈
           </p>
+        </motion.div>
+      </motion.header>
+
+      {loading ? (
+        <div className="flex-1 flex flex-col justify-center items-center">
+          <motion.div
+            className="text-4xl mb-6"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          >
+            🔥
+          </motion.div>
+          <p
+            className="text-2xl animate-pulse bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent font-bold"
+            style={{ fontFamily: "Orbitron, monospace" }}
+          >
+            {availableSubjects.length === 0
+              ? "🔍 Loading available subjects..."
+              : "⚡ Forging the Devil's Path..."}
+          </p>
+          <div className="mt-4 flex space-x-2">
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="w-3 h-3 bg-red-500 rounded-full"
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0.5, 1, 0.5],
+                }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  delay: i * 0.2,
+                }}
+              />
+            ))}
+          </div>
         </div>
       ) : (
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          fitView
-          className="bg-gray-900"
-        >
-          <Background color="#ff0000" gap={16} />
-          <Controls />
-        </ReactFlow>
+        <div className="flex-1 relative">
+          <motion.div
+            className="w-full h-full"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+          >
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              fitView
+              className="bg-transparent"
+              style={{
+                background: "transparent",
+                height: "100%",
+                width: "100%",
+              }}
+            >
+              <Background
+                color="#f97316"
+                gap={20}
+                size={1}
+                style={{
+                  opacity: 0.3,
+                }}
+              />
+              <Controls
+                className="!bg-gray-900/80 !border-orange-600/50 !text-orange-300"
+                style={{
+                  background: "rgba(17, 24, 39, 0.8)",
+                  border: "1px solid rgba(249, 115, 22, 0.5)",
+                  borderRadius: "8px",
+                }}
+              />
+            </ReactFlow>
+          </motion.div>
+        </div>
       )}
     </div>
   );

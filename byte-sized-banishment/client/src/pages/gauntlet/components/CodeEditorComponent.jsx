@@ -176,46 +176,67 @@ const CodeEditorComponent = ({ onCodeChange, value, language }) => {
   };
 
   return (
-    <div className="border-2 border-gray-700 rounded-lg overflow-hidden">
-      <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
+    <div className="border-2 border-red-600/50 rounded-lg overflow-hidden bg-gradient-to-br from-black/60 to-red-900/20 backdrop-blur-sm shadow-2xl">
+      <div className="bg-gradient-to-r from-black/80 to-red-900/40 px-4 py-3 border-b border-red-600/50">
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-300 font-mono">
-            Language:{" "}
-            <span className="text-red-400 font-semibold">
-              {selectedLanguage.toUpperCase()}
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">👨‍💻</span>
+            <span
+              className="text-sm text-gray-200 font-mono"
+              style={{ fontFamily: "'Orbitron', monospace" }}
+            >
+              Language:{" "}
+              <span className="text-red-400 font-semibold text-lg">
+                {selectedLanguage.toUpperCase()}
+              </span>
             </span>
-          </span>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleReset}
-              className="text-xs px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded transition-colors duration-200"
+              className="text-xs px-3 py-2 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white rounded-lg transition-all duration-200 font-bold border border-red-500/50"
+              style={{
+                fontFamily: "'Orbitron', monospace",
+                boxShadow: "0 0 10px rgba(220, 38, 38, 0.3)",
+              }}
               title="Reset to default template"
             >
-              🔄 Reset
+              🔄 Reset Code
             </button>
           </div>
         </div>
 
         {/* Language Selector for Multi-Language Subjects */}
         {availableLanguages.length > 0 && (
-          <div className="mt-2 pt-2 border-t border-gray-600">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-gray-400 font-mono">
-                Choose Language:
+          <div className="mt-3 pt-3 border-t border-red-600/30">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span
+                className="text-xs text-orange-400 font-mono font-bold"
+                style={{ fontFamily: "'Orbitron', monospace" }}
+              >
+                🔥 Choose Your Weapon:
               </span>
               {availableLanguages.map((lang) => (
                 <button
                   key={lang.id}
                   onClick={() => handleLanguageChange(lang.id)}
-                  className={`text-xs px-2 py-1 rounded transition-all duration-200 font-mono flex items-center gap-1 ${
+                  className={`text-xs px-3 py-2 rounded-lg transition-all duration-200 font-mono flex items-center gap-2 border ${
                     selectedLanguage === lang.id
-                      ? "bg-red-600 text-white shadow-md"
-                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      ? "bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-lg border-red-400"
+                      : "bg-black/50 text-gray-300 hover:bg-red-900/30 border-red-700/50 hover:border-red-500/70"
                   }`}
+                  style={{
+                    boxShadow:
+                      selectedLanguage === lang.id
+                        ? "0 0 15px rgba(220, 38, 38, 0.5)"
+                        : "0 0 5px rgba(0, 0, 0, 0.3)",
+                  }}
                   title={`Switch to ${lang.name}`}
                 >
-                  <span>{lang.icon}</span>
-                  <span>{lang.name}</span>
+                  <span className="text-lg">{lang.icon}</span>
+                  <span style={{ fontFamily: "'Orbitron', monospace" }}>
+                    {lang.name}
+                  </span>
                 </button>
               ))}
             </div>
