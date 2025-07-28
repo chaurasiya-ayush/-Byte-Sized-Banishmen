@@ -4,12 +4,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import AuthModal from "../components/AuthModal";
 
+// Gaming devil particle images (place in /public or static CDN)
+const PARTICLES = [
+  "/icons/flame.png",
+  "/icons/dice.png",
+  "/icons/controller.png",
+  "/icons/xp-star.png",
+];
 // Placeholder team data
 const TEAM_MEMBERS = [
   {
     name: "Ayush 'Leader' Inferno",
     role: "Lead Fiend & Frontend Conjurer",
-    img: "/team/dp1.png", 
+    img: "/team/dp1.png",
     bio: "Brings the pixel-sorcery and devilishly good UI magic.",
   },
   {
@@ -32,29 +39,45 @@ const TEAM_MEMBERS = [
   },
 ];
 
+// ...TEAM_MEMBERS as before...
+
 const heroVariants = {
   hidden: { opacity: 0, y: 30 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { type: "spring", stiffness: 80, damping: 14, delay: 0.4 },
+    transition: { type: "spring", stiffness: 90, damping: 13, delay: 0.4 },
   },
 };
+// ...subtitleVariants as before...
+// Animate the subtitle nicely
 const subtitleVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: (i) => ({
+  visible: (i = 0) => ({
     opacity: 1,
     y: 0,
     transition: { delay: 0.7 + i * 0.1, duration: 0.7 },
   }),
 };
 
+// NEW: Particle Animations
+const makeParticles = () =>
+  Array.from({ length: 10 }).map((_, i) => ({
+    id: i,
+    icon: PARTICLES[i % PARTICLES.length],
+    x: Math.random() * 90 + "%",
+    delay: Math.random() * 8,
+  }));
+
 const LandingPage = () => {
   const [showModal, setShowModal] = useState(false);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  const handleGetStartedClick = () => {
+  const particles = makeParticles();
+
+  const handleGetStartedClick = (e) => {
+    e.preventDefault(); // Prevent any default behavior that might cause refresh
     if (currentUser) {
       navigate("/dashboard");
     } else {
@@ -64,21 +87,62 @@ const LandingPage = () => {
 
   return (
     <div className="bg-gradient-to-br from-gray-950 via-black to-red-900 min-h-screen text-white flex flex-col items-center justify-center p-0 relative overflow-hidden">
-      {/* BG Glows */}
+      {/* BACKGROUND SMOKE/SHADOW OVERLAY */}
       <motion.div
-        className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-red-900 rounded-full opacity-25 blur-3xl z-0 pointer-events-none"
-        animate={{ scale: [1, 1.1, 0.9, 1] }}
-        transition={{ repeat: Infinity, duration: 7, ease: "easeInOut" }}
-        style={{ boxShadow: "0 0 90px 50px #7f1d1d44" }}
-      />
-      <motion.div
-        className="absolute -top-40 -right-40 w-[530px] h-[500px] bg-red-800 rounded-full opacity-30 blur-3xl z-0 pointer-events-none"
-        animate={{ scale: [1, 0.93, 1.05, 1] }}
-        transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
-        style={{ boxShadow: "0 0 150px 60px #991b1b33" }}
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 80%, rgba(124,25,25,0.27), transparent 80%)",
+          zIndex: 1,
+        }}
+        animate={{ opacity: [0.7, 0.9, 0.7] }}
+        transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
       />
 
-      {/* Hero */}
+      {/* DEVILISH HERO GLOWS */}
+      <motion.div
+        className="absolute -bottom-48 -left-48 w-[500px] h-[500px] bg-red-900 rounded-full opacity-25 blur-3xl z-0 pointer-events-none"
+        animate={{ scale: [1, 1.1, 0.9, 1], y: [0, -30, 0] }}
+        transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
+        style={{ boxShadow: "0 0 120px 60px #a21c1c55" }}
+      />
+      <motion.div
+        className="absolute -top-40 -right-40 w-[430px] h-[400px] bg-red-800 rounded-full opacity-25 blur-2xl z-0 pointer-events-none"
+        animate={{ scale: [1, 0.96, 1.04, 1], y: [0, 30, 0] }}
+        transition={{ repeat: Infinity, duration: 12, ease: "easeInOut" }}
+        style={{ boxShadow: "0 0 120px 40px #ef444433" }}
+      />
+
+      {/* NEW: Gaming Devil Floating Particles */}
+      {particles.map((p, idx) => (
+        <motion.img
+          key={p.id}
+          src={p.icon}
+          className="absolute z-10 opacity-80"
+          alt="particle"
+          style={{
+            left: p.x,
+            bottom: "-48px",
+            width: "30px",
+            filter: "drop-shadow(0 0 15px #dc2626bb)",
+          }}
+          initial={{ y: 0, opacity: 0.5, scale: 0.85, rotate: 0 }}
+          animate={{
+            y: [-10, -280 - idx * 18],
+            opacity: [0.4, 0.9, 0],
+            scale: [0.85, 1.12, 1],
+            rotate: [0, 12 * idx, -3 * idx],
+          }}
+          transition={{
+            repeat: Infinity,
+            delay: p.delay,
+            duration: 7 + idx * 0.33,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
+      {/* HERO: Title, Subtitle, Button */}
       <motion.section
         initial="hidden"
         animate="visible"
@@ -86,12 +150,10 @@ const LandingPage = () => {
         className="mt-24 mb-12 z-10 text-center"
       >
         <motion.h1
-          className="text-5xl md:text-7xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-red-600 relative inline-block drop-shadow-2xl"
+          className="text-5xl md:text-7xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-yellow-600 relative inline-block drop-shadow-2xl"
           style={{
-            fontFamily:
-              "'Orbitron', 'Exo 2', 'Rajdhani', 'Bebas Neue', monospace",
-            textShadow:
-              "0 0 20px #dc2626aa, 0 0 40px #dc2626aa, 0 0 60px #dc262655",
+            fontFamily: "'Orbitron', 'Bebas Neue', monospace",
+            textShadow: "0 0 20px #d97706aaa, 0 0 60px #dc262655",
             letterSpacing: "0.05em",
           }}
         >
@@ -99,11 +161,15 @@ const LandingPage = () => {
           <br />
           <span
             className="text-yellow-400 drop-shadow-2xl"
-            style={{ textShadow: "0 0 20px #fbbf24aa, 0 0 40px #fbbf24aa" }}
+            style={{ textShadow: "0 2px 16px #fbbf24aa" }}
           >
             BANISHMENT
           </span>
-          <span className="ml-3 text-4xl md:text-6xl animate-pulse">🔥</span>
+          <span className="ml-2 text-4xl md:text-6xl animate-pulse">🔥</span>
+          {/* NEW: Animated pixel sparkle, devil horn overlay */}
+          <span className="absolute left-1/2 -top-8 -translate-x-1/2 text-5xl animate-bounce select-none pointer-events-none">
+            😈
+          </span>
         </motion.h1>
         <motion.p
           custom={0}
@@ -112,12 +178,15 @@ const LandingPage = () => {
           style={{
             fontFamily: "'Rajdhani', 'Exo 2', sans-serif",
             fontWeight: "500",
-            textShadow: "0 2px 4px rgba(0,0,0,0.8)",
+            textShadow: "0 2px 6px rgba(0,0,0,0.8)",
           }}
         >
           <span
             className="text-red-400 font-bold text-2xl md:text-3xl block mb-2"
-            style={{ fontFamily: "'Orbitron', monospace" }}
+            style={{
+              fontFamily: "'Orbitron', monospace",
+              letterSpacing: "0.09em",
+            }}
           >
             FACE THE DEVIL'S GAUNTLET
           </span>
@@ -125,7 +194,7 @@ const LandingPage = () => {
           <span className="text-orange-400 font-bold">intense pressure</span>.
           <br />
           Survive the{" "}
-          <span className="text-red-400 font-bold">trial by fire</span> and
+          <span className="text-red-500 font-bold">trial by fire</span> and
           claim your place among the elite.
           <br />
           <span
@@ -138,42 +207,45 @@ const LandingPage = () => {
             ⚡ YOUR CODING DESTINY AWAITS ⚡
           </span>
         </motion.p>
-
         <motion.button
           whileHover={{
-            scale: 1.05,
-            backgroundColor: "#dc2626",
+            scale: 1.08,
+            backgroundColor: "#b91c1c",
             color: "#fff",
-            boxShadow: "0 0 30px 10px #dc262680, 0 0 60px 20px #dc262640",
+            boxShadow: "0 0 32px 10px #dc2626af, 0 0 64px 20px #dc262650",
           }}
-          whileTap={{ scale: 0.98 }}
-          transition={{ type: "spring", stiffness: 250, damping: 10 }}
+          whileTap={{ scale: 0.97 }}
+          transition={{ type: "spring", stiffness: 360, damping: 19 }}
           onClick={handleGetStartedClick}
-          className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-black font-black py-5 px-12 rounded-full text-xl md:text-2xl hover:from-red-500 hover:to-yellow-400 transition-all duration-300 shadow-2xl shadow-red-500/50 border-4 border-yellow-400/20 hover:border-white/40"
+          className="relative shadow-2xl shadow-red-700/60 border-4 border-yellow-400/20 hover:border-yellow-200 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-black font-black py-5 px-14 rounded-full text-xl md:text-2xl transition-all duration-300 group"
           style={{
             fontFamily: "'Orbitron', 'Bebas Neue', monospace",
-            letterSpacing: "0.1em",
-            textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+            letterSpacing: "0.11em",
+            textShadow: "0 2px 8px rgba(0,0,0,0.6)",
           }}
         >
           {currentUser ? "🔥 ENTER THE GAUNTLET 🔥" : "💀 BEGIN YOUR TRIAL 💀"}
+          {/* Devil tail */}
+          <span className="absolute right-3 -bottom-6 rotate-12 scale-[2.5] select-none pointer-events-none opacity-75 transition-all group-hover:opacity-100">
+            😈
+          </span>
         </motion.button>
       </motion.section>
 
-      {/* About Section */}
+      {/* ABOUT/TEAM SECTION: Demonified */}
       <motion.section
         initial={{ opacity: 0, y: 60 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-        className="backdrop-blur-lg bg-gradient-to-br from-black/60 via-red-900/30 to-transparent rounded-2xl shadow-2xl shadow-black/60 p-8 md:p-12 z-20 w-full md:w-5/6 max-w-5xl mt-8"
+        transition={{ duration: 0.9, delay: 0.25 }}
+        className="backdrop-blur-md bg-gradient-to-tr from-black/50 via-red-800/20 to-transparent border border-red-900/30 rounded-2xl shadow-xl p-8 md:p-12 z-20 w-full md:w-5/6 max-w-5xl mt-8"
       >
         <h2
-          className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 mb-6 flex items-center gap-3"
+          className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 mb-7 flex items-center gap-3"
           style={{
-            fontFamily: "'Orbitron', 'Bebas Neue', monospace",
+            fontFamily: "'Orbitron', 'Rajdhani', monospace",
             letterSpacing: "0.05em",
-            textShadow: "0 0 20px #dc2626aa",
+            textShadow: "0 0 14px #dc2626b9",
           }}
         >
           <span aria-label="demon" className="text-5xl animate-bounce">
@@ -184,24 +256,31 @@ const LandingPage = () => {
             🔥
           </span>
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-5">
           {TEAM_MEMBERS.map((member, idx) => (
             <motion.div
               key={idx}
-              initial={{ opacity: 0, y: 38 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 44, scale: 0.98 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.14, type: "spring", stiffness: 180 }}
-              className="rounded-xl p-4 bg-black/60 border border-red-800 flex items-center gap-5 shadow-lg cursor-pointer"
+              transition={{ delay: idx * 0.13, type: "spring", stiffness: 160 }}
+              whileHover={{
+                y: -6,
+                boxShadow: "0 0 32px 2px #dc2626bb, 0 0 92px 22px #dc26261a",
+                scale: 1.035,
+              }}
+              className="relative rounded-xl p-5 bg-gradient-to-bl from-black/80 via-red-900/60 to-black/60 border-2 border-red-800 hover:border-yellow-400/40 flex items-center gap-5 shadow-lg cursor-pointer overflow-hidden group"
             >
-              {/* Image placeholder (swap src later) */}
+              {/* Devil horns on hover */}
+              <span className="absolute left-6 -top-6 text-3xl opacity-0 group-hover:opacity-90 transition-all select-none">
+                👿
+              </span>
               <div className="w-20 h-20 bg-gradient-to-br from-red-800 to-black rounded-full flex-shrink-0 overflow-hidden border-4 border-red-700 shadow-md flex items-center justify-center">
                 <img
                   src={member.img}
                   alt={member.name}
                   className="object-cover w-full h-full"
-                  style={{ filter: "grayscale(10%) contrast(1.16)" }}
-                  // Show fallback demon emoji if no dp available
+                  style={{ filter: "grayscale(10%) contrast(1.12)" }}
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src =
@@ -211,10 +290,11 @@ const LandingPage = () => {
               </div>
               <div>
                 <h3
-                  className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-300 to-orange-300 flex items-center gap-2"
+                  className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-300 via-yellow-400 to-orange-300 flex items-center gap-2"
                   style={{
                     fontFamily: "'Rajdhani', 'Exo 2', sans-serif",
                     letterSpacing: "0.05em",
+                    textShadow: "0 0 6px #d97706aa",
                   }}
                 >
                   {member.name}
@@ -225,6 +305,7 @@ const LandingPage = () => {
                   style={{
                     fontFamily: "'Orbitron', monospace",
                     fontSize: "0.9rem",
+                    letterSpacing: "0.04em",
                   }}
                 >
                   {member.role}
@@ -240,6 +321,18 @@ const LandingPage = () => {
           ))}
         </div>
       </motion.section>
+
+      {/* LAVA FLICKER FOOTER for the gaming mood */}
+      <motion.div
+        className="absolute left-0 bottom-0 w-full h-[26px] pointer-events-none z-30"
+        style={{
+          background:
+            "linear-gradient(90deg, #330000 35%, #b91c1c 60%, #ffd700 85%, #f97316 100%)",
+          filter: "blur(8px)",
+        }}
+        animate={{ opacity: [0.8, 1, 0.9, 1] }}
+        transition={{ repeat: Infinity, duration: 7, ease: "easeInOut" }}
+      />
 
       {/* Auth Modal */}
       <AnimatePresence>
