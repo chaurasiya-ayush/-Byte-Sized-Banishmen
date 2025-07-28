@@ -264,17 +264,8 @@ const LandingPage = () => {
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.13, type: "spring", stiffness: 160 }}
-              whileHover={{
-                y: -6,
-                boxShadow: "0 0 32px 2px #dc2626bb, 0 0 92px 22px #dc26261a",
-                scale: 1.035,
-              }}
               className="relative rounded-xl p-5 bg-gradient-to-bl from-black/80 via-red-900/60 to-black/60 border-2 border-red-800 hover:border-yellow-400/40 flex items-center gap-5 shadow-lg cursor-pointer overflow-hidden group"
             >
-              {/* Devil horns on hover */}
-              <span className="absolute left-6 -top-6 text-3xl opacity-0 group-hover:opacity-90 transition-all select-none">
-                👿
-              </span>
               <div className="w-20 h-20 bg-gradient-to-br from-red-800 to-black rounded-full flex-shrink-0 overflow-hidden border-4 border-red-700 shadow-md flex items-center justify-center">
                 <img
                   src={member.img}
