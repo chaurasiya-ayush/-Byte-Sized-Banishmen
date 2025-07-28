@@ -7,28 +7,28 @@ import AuthModal from "../components/AuthModal";
 // Placeholder team data
 const TEAM_MEMBERS = [
   {
-    name: "Lucifer 'Luke' Inferno",
+    name: "Ayush 'Leader' Inferno",
     role: "Lead Fiend & Frontend Conjurer",
-    img: "/team/dp1.png", // Placeholder path, replace later
+    img: "/team/dp1.png", 
     bio: "Brings the pixel-sorcery and devilishly good UI magic.",
   },
   {
-    name: "Lilith DeBug",
-    role: "Backend Demoness",
-    img: "/team/dp2.png",
-    bio: "Turns database nightmares into functional hellscapes.",
+    name: "Naina DevOps",
+    role: "Chaos of Deployments",
+    img: "/team/dp4.png",
+    bio: "Ensures the flames of production keep burning bright.",
   },
   {
-    name: "Moloch Syntax",
+    name: "Arya Syntax",
     role: "AI Quizmaster Architect",
     img: "/team/dp3.png",
     bio: "Built the gauntlet's mind-bending question engine.",
   },
   {
-    name: "Asmodeus DevOps",
-    role: "Chaos of Deployments",
-    img: "/team/dp4.png",
-    bio: "Ensures the flames of production keep burning bright.",
+    name: "Rahul DeBug",
+    role: "Backend Demoness",
+    img: "/team/dp2.png",
+    bio: "Turns database nightmares into functional hellscapes.",
   },
 ];
 

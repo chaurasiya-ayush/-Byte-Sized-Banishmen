@@ -546,7 +546,7 @@ const Dashboard = () => {
             localStorage.setItem("audioWasPlayingBeforeHidden", "false");
           }
         } else {
-          // Page is visible again - resume if it was playing before
+         
           const wasPlaying =
             localStorage.getItem("audioWasPlayingBeforeHidden") === "true";
           if (wasPlaying && isPlaying) {
