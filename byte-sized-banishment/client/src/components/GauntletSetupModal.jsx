@@ -1,19 +1,72 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const GauntletSetupModal = ({ showModal, setShowModal }) => {
-  const [subject, setSubject] = useState("JavaScript");
+  const [subject, setSubject] = useState("");
   const [difficulty, setDifficulty] = useState("easy");
   const [loading, setLoading] = useState(false);
+  const [subjects, setSubjects] = useState([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(true);
   const navigate = useNavigate();
 
-  const subjects = ["JavaScript", "Python", "Data Structures"]; // This could be fetched from an API later
+  // Fetch available subjects from API
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      if (!showModal) return; // Only fetch when modal is shown
+
+      try {
+        setLoadingSubjects(true);
+        const token = localStorage.getItem("authToken");
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+
+        const { data } = await axios.get(
+          "http://localhost:5000/api/gauntlet/subjects",
+          config
+        );
+
+        if (data.success && data.subjects) {
+          setSubjects(data.subjects);
+          // Set first subject as default if no subject is selected
+          if (!subject && data.subjects.length > 0) {
+            setSubject(data.subjects[0]);
+          }
+        } else {
+          // Fallback to hardcoded subjects if API fails
+          const fallbackSubjects = ["JavaScript", "Python", "Data Structures"];
+          setSubjects(fallbackSubjects);
+          if (!subject) {
+            setSubject(fallbackSubjects[0]);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch subjects:", error);
+        // Fallback to hardcoded subjects
+        const fallbackSubjects = ["JavaScript", "Python", "Data Structures"];
+        setSubjects(fallbackSubjects);
+        if (!subject) {
+          setSubject(fallbackSubjects[0]);
+        }
+        toast.error("Failed to load subjects, using defaults");
+      } finally {
+        setLoadingSubjects(false);
+      }
+    };
+
+    fetchSubjects();
+  }, [showModal, subject]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate that a subject is selected
+    if (!subject) {
+      toast.error("Please select a subject");
+      return;
+    }
+
     setLoading(true);
     const toastId = toast.loading("The Devil is preparing your trial...");
 
@@ -72,13 +125,20 @@ const GauntletSetupModal = ({ showModal, setShowModal }) => {
                 id="subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                disabled={loadingSubjects}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {subjects.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
+                {loadingSubjects ? (
+                  <option value="">Loading subjects...</option>
+                ) : subjects.length > 0 ? (
+                  subjects.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">No subjects available</option>
+                )}
               </select>
             </div>
             <div className="mb-8">
@@ -104,10 +164,14 @@ const GauntletSetupModal = ({ showModal, setShowModal }) => {
             </div>
             <button
               type="submit"
-              className="w-full bg-white hover:bg-red-500 text-gray-900 hover:text-white font-bold py-3 rounded-lg text-lg transition-all transform hover:scale-105 disabled:opacity-50"
-              disabled={loading}
+              className="w-full bg-white hover:bg-red-500 text-gray-900 hover:text-white font-bold py-3 rounded-lg text-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              disabled={loading || loadingSubjects || !subject}
             >
-              {loading ? "Summoning..." : "Start Trial"}
+              {loading
+                ? "Summoning..."
+                : loadingSubjects
+                ? "Loading..."
+                : "Start Trial"}
             </button>
           </form>
         </motion.div>
