@@ -27,31 +27,31 @@ const PARTICLES = [
   ":",
   ";",
 ];
-// Placeholder team data
+// Team data
 const TEAM_MEMBERS = [
   {
     name: "Ayush 'Leader' Inferno",
-    role: "Lead Fiend & Frontend Conjurer",
+    role: "Frontend Developer & UI Architect",
     img: "/team/dp1.png",
-    bio: "Brings the pixel-sorcery and devilishly good UI magic.",
+    bio: "Crafts stunning user interfaces and brings pixel-perfect frontend magic to life.",
   },
   {
     name: "Naina DevOps",
-    role: "Chaos of Deployments",
+    role: "Content Provider & Business Logic",
     img: "/team/dp4.png",
-    bio: "Ensures the flames of production keep burning bright.",
+    bio: "Drives business logic, content strategy, and provides essential support to keep everything running.",
   },
   {
     name: "Arya Syntax",
-    role: "AI Quizmaster Architect",
+    role: "Android Developer",
     img: "/team/dp3.png",
-    bio: "Built the gauntlet's mind-bending question engine.",
+    bio: "Masters mobile development and creates seamless Android experiences.",
   },
   {
     name: "Rahul DeBug",
-    role: "Backend Demoness",
+    role: "Backend & Full Stack Dominator",
     img: "/team/dp2.png",
-    bio: "Turns database nightmares into functional hellscapes.",
+    bio: "Core logic builder who dominates the backend and orchestrates the entire full stack architecture.",
   },
 ];
 
