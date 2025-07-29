@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import AuthModal from "../components/AuthModal";
-import { FaFire, FaSkull, FaCode, FaRocket, FaBolt } from "react-icons/fa";
+import { FaFire, FaSkull, FaBolt } from "react-icons/fa";
 import { GiDevilMask } from "react-icons/gi";
 
 // Coding syntax symbols as particles

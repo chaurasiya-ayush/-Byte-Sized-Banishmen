@@ -5,7 +5,13 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
-import { FaFire, FaBullseye, FaSearch, FaBolt } from "react-icons/fa";
+import {
+  FaFire,
+  FaBullseye,
+  FaSearch,
+  FaBolt,
+  FaStarOfLife,
+} from "react-icons/fa";
 import { GiDevilMask } from "react-icons/gi";
 import CustomNode from "./components/CustomNode";
 
@@ -131,17 +137,17 @@ const SkillTreePage = () => {
   return (
     <div className="w-full h-screen bg-gradient-to-br from-black via-red-950 to-orange-950 text-white flex flex-col">
       <motion.header
-        className="relative z-10 p-6 flex flex-wrap items-center gap-4 bg-gradient-to-r from-black/90 to-red-950/90 backdrop-blur-sm border-b-2 border-orange-600/30"
+        className="relative z-10 p-6 flex flex-wrap items-center gap-4 bg-gradient-to-r from-black/90 to-red-950/90 backdrop-blur-sm border-b border-orange-600/30"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
         <motion.button
           onClick={() => navigate("/dashboard")}
-          className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold py-2 px-4 rounded-lg border border-red-500 transition-all duration-300 shadow-lg hover:shadow-red-500/25"
+          className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold py-2 px-4 rounded-lg border border-red-500 transition-all duration-300 shadow-lg"
           style={{ fontFamily: "Rajdhani, sans-serif" }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
           ← Back to Dashboard
         </motion.button>
@@ -151,13 +157,13 @@ const SkillTreePage = () => {
             className="text-orange-300 text-xs mb-1 font-bold flex items-center gap-1"
             style={{ fontFamily: "Rajdhani, sans-serif" }}
           >
-            <FaFire className="text-orange-400" />
+            <FaStarOfLife className="text-orange-400" />
             Choose Your Path:
           </label>
           <motion.select
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            className="bg-gradient-to-r from-gray-900 to-red-900/50 border-2 border-orange-600/50 rounded-lg p-2 text-orange-200 font-bold min-w-[180px] focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+            className="bg-gradient-to-r from-gray-900 to-red-900/50 border border-orange-600/50 rounded-lg p-2 text-orange-200 font-bold min-w-[180px] focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
             style={{ fontFamily: "Rajdhani, sans-serif" }}
             disabled={availableSubjects.length === 0}
             initial={{ opacity: 0, x: -20 }}
@@ -210,13 +216,14 @@ const SkillTreePage = () => {
         <div className="flex-1 flex flex-col justify-center items-center">
           <motion.div
             className="text-4xl mb-6 text-orange-400"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
           >
-            <FaFire />
+            <FaBolt />
           </motion.div>
           <p
-            className="text-2xl animate-pulse bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent font-bold flex items-center gap-2"
+            className="text-2xl bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent font-bold flex items-center gap-2"
             style={{ fontFamily: "Orbitron, monospace" }}
           >
             {availableSubjects.length === 0 ? (
@@ -226,7 +233,7 @@ const SkillTreePage = () => {
               </>
             ) : (
               <>
-                <FaBolt className="text-orange-400" />
+                <FaStarOfLife className="text-orange-400" />
                 Forging the Devil's Path...
               </>
             )}
@@ -237,13 +244,12 @@ const SkillTreePage = () => {
                 key={i}
                 className="w-3 h-3 bg-red-500 rounded-full"
                 animate={{
-                  scale: [1, 1.2, 1],
                   opacity: [0.5, 1, 0.5],
                 }}
                 transition={{
-                  duration: 1,
+                  duration: 1.5,
                   repeat: Infinity,
-                  delay: i * 0.2,
+                  delay: i * 0.3,
                 }}
               />
             ))}
