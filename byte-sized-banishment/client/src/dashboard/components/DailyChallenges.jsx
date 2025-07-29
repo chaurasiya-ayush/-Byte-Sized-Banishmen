@@ -24,8 +24,10 @@ const DailyChallenges = ({ challenge, weakestLink }) => {
         </div>
         <p className="text-gray-300 text-sm">
           The Devil mocks your struggles with{" "}
-          <span className="font-bold text-red-400">{weakestLink}</span>. Prove
-          him wrong.
+          <span className="font-bold text-red-400">
+            {weakestLink || "Nothing Yet"}
+          </span>
+          . Prove him wrong.
         </p>
       </div>
     </div>

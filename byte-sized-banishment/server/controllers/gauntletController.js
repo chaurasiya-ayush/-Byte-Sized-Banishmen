@@ -261,28 +261,43 @@ export const startWeaknessDrill = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found." });
 
-    const weakness = findWeakestLink(user.progress);
+    const weaknessString = findWeakestLink(user.progress);
 
-    if (!weakness) {
+    if (!weaknessString) {
       return res.status(400).json({
         message: "The Devil hasn't found your weakness yet. Play more trials!",
       });
     }
 
-    const drillQuestions = await Question.find({
-      subject: weakness.subject,
-      subTopic: weakness.subTopic,
-    }).limit(5);
+    // Parse the weakness string back to get subject and subTopic
+    // Format: "SubTopic (Subject)" or just "Subject"
+    let subject, subTopic;
+    const match = weaknessString.match(/^(.+?)\s*\((.+?)\)$/);
+    if (match) {
+      subTopic = match[1].trim();
+      subject = match[2].trim();
+    } else {
+      subject = weaknessString;
+      subTopic = null;
+    }
+
+    // Build query for drill questions
+    const query = { subject };
+    if (subTopic) {
+      query.subTopic = subTopic;
+    }
+
+    const drillQuestions = await Question.find(query).limit(5);
 
     if (drillQuestions.length === 0) {
       return res.status(404).json({
-        message: `Could not find any drill questions for ${weakness.subTopic}.`,
+        message: `Could not find any drill questions for ${weaknessString}.`,
       });
     }
 
     const session = new GauntletSession({
       userId,
-      subject: `Weakness Drill: ${weakness.subTopic}`,
+      subject: `Weakness Drill: ${weaknessString}`,
     });
 
     const firstQuestion = drillQuestions[0];

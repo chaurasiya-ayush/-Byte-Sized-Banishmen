@@ -94,10 +94,11 @@ function findWeakestLink(userProgress) {
     }
   }
 
-  // If a weakness is found, return it as a structured object
+  // If a weakness is found, return it as a formatted string
   if (weakestTopicKey) {
     const [subject, subTopic] = weakestTopicKey.split("-");
-    return { subject, subTopic };
+    // Return formatted string for frontend display
+    return subTopic ? `${subTopic} (${subject})` : subject;
   }
 
   // Return null if no weakness meets the criteria

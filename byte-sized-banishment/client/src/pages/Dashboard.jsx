@@ -328,20 +328,16 @@ const Sidebar = ({
           <span className="font-bold text-red-400">
             {weakestLink || "Nothing Yet"}
           </span>
-          .
+          . Prove him wrong.
         </p>
         <motion.button
           onClick={onStartWeaknessDrill}
           disabled={
-            isDrillLoading ||
-            !weakestLink ||
-            weakestLink.includes("Nothing Yet")
+            isDrillLoading || !weakestLink || weakestLink === "Nothing Yet"
           }
           whileHover={{
             scale:
-              !isDrillLoading &&
-              weakestLink &&
-              !weakestLink.includes("Nothing Yet")
+              !isDrillLoading && weakestLink && weakestLink !== "Nothing Yet"
                 ? 1.05
                 : 1,
             boxShadow: fireShadow,
@@ -546,7 +542,6 @@ const Dashboard = () => {
             localStorage.setItem("audioWasPlayingBeforeHidden", "false");
           }
         } else {
-         
           const wasPlaying =
             localStorage.getItem("audioWasPlayingBeforeHidden") === "true";
           if (wasPlaying && isPlaying) {
