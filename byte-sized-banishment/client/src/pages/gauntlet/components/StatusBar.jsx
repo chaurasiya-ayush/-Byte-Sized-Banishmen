@@ -11,11 +11,24 @@ import {
 } from "react-icons/fa";
 import { GiDevilMask } from "react-icons/gi";
 
-const StatusBar = ({ stats, currentQuestion }) => {
-  // Calculate session progress (based on questions answered)
-  const questionsAnswered = stats.questionNum || 1;
-  const currentStreak = stats.correctStreak || 0;
+const StatusBar = ({ stats, currentQuestion, sessionProgress }) => {
+  // Calculate session progress (based on 15-question session)
+  const questionsAnswered =
+    sessionProgress?.currentQuestion || stats.questionNum || 1;
+  const totalQuestions = sessionProgress?.totalQuestions || 15;
+  const correctAnswers = sessionProgress?.correctAnswers || 0;
+  const incorrectAnswers = sessionProgress?.incorrectAnswers || 0;
+  const currentDifficulty = sessionProgress?.currentDifficulty || "easy";
+  const currentStreak =
+    sessionProgress?.correctStreak || stats.correctStreak || 0;
   const sessionDuration = stats.sessionTime || "00:00";
+
+  // Calculate accuracy
+  const totalAttempted = correctAnswers + incorrectAnswers;
+  const accuracy =
+    totalAttempted > 0
+      ? ((correctAnswers / totalAttempted) * 100).toFixed(1)
+      : 0;
 
   const statItems = [
     {
@@ -31,13 +44,19 @@ const StatusBar = ({ stats, currentQuestion }) => {
       iconComponent: FaFire,
     },
     {
-      icon: <FaQuestionCircle className="text-red-400" />,
-      label: "Questions",
-      value: `${questionsAnswered} answered`,
+      icon: <FaQuestionCircle className="text-blue-400" />,
+      label: "Progress",
+      value: `${questionsAnswered}/${totalQuestions}`,
       iconComponent: FaQuestionCircle,
     },
     {
-      icon: <FaBolt className="text-green-400" />,
+      icon: <FaBullseye className="text-green-400" />,
+      label: "Accuracy",
+      value: `${accuracy}%`,
+      iconComponent: FaBullseye,
+    },
+    {
+      icon: <FaBolt className="text-purple-400" />,
       label: "Streak",
       value: `${currentStreak} correct`,
       iconComponent: FaBolt,
@@ -109,6 +128,64 @@ const StatusBar = ({ stats, currentQuestion }) => {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Session Progress */}
+      <div className="flex-shrink-0 bg-gradient-to-r from-gray-900/60 to-blue-900/40 p-3 rounded-lg border border-blue-500/50 mb-4">
+        <h3
+          className="font-bold text-xs text-blue-400 mb-2 flex items-center gap-2"
+          style={{ fontFamily: "'Orbitron', monospace" }}
+        >
+          <FaQuestionCircle className="text-blue-400" />
+          SESSION PROGRESS
+        </h3>
+
+        {/* Progress Bar */}
+        <div className="mb-2">
+          <div className="flex justify-between text-xs text-gray-300 mb-1">
+            <span>
+              Questions: {questionsAnswered}/{totalQuestions}
+            </span>
+            <span>
+              {((questionsAnswered / totalQuestions) * 100).toFixed(0)}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-700 rounded-full h-2">
+            <div
+              className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+              style={{
+                width: `${(questionsAnswered / totalQuestions) * 100}%`,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Answer Breakdown */}
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="text-center">
+            <div className="text-green-400 font-bold">{correctAnswers}</div>
+            <div className="text-gray-400">Correct</div>
+          </div>
+          <div className="text-center">
+            <div className="text-red-400 font-bold">{incorrectAnswers}</div>
+            <div className="text-gray-400">Incorrect</div>
+          </div>
+        </div>
+
+        {/* Difficulty Badge */}
+        <div className="mt-2 text-center">
+          <span
+            className={`text-xs font-bold capitalize px-2 py-1 rounded ${
+              currentDifficulty === "hard"
+                ? "bg-red-600 text-white"
+                : currentDifficulty === "medium"
+                ? "bg-orange-500 text-white"
+                : "bg-green-600 text-white"
+            }`}
+          >
+            Current: {currentDifficulty}
+          </span>
         </div>
       </div>
 

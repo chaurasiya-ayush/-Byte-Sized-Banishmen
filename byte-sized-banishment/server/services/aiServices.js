@@ -13,52 +13,135 @@ try {
   console.error("Could not read dialogueWithAudio.json.", error);
 }
 
-// --- Engine 1: Adaptive Question Selector ---
+// --- Engine 1: Enhanced Adaptive Question Selector ---
 async function selectNextQuestion(session, lastQuestion, isCorrect) {
   const difficultyOrder = ["easy", "medium", "hard"];
-  const lastDifficultyIndex = difficultyOrder.indexOf(lastQuestion.difficulty);
 
-  let nextDifficulty;
-  let queryOptions = {
-    subject: session.subject,
-    _id: { $nin: session.questionHistory },
-  };
+  let nextDifficulty = session.currentDifficulty;
+  let difficultyReason = "same";
 
+  // Adaptive difficulty logic
   if (isCorrect) {
-    if (lastDifficultyIndex < 2) {
-      if (lastQuestion.difficulty === "medium" && session.correctStreak >= 2) {
-        nextDifficulty = "hard";
-      } else {
-        nextDifficulty = difficultyOrder[lastDifficultyIndex + 1];
-      }
-    } else {
+    session.correctStreak += 1;
+
+    // Increase difficulty based on performance
+    if (session.correctStreak >= 3 && nextDifficulty === "easy") {
+      nextDifficulty = "medium";
+      difficultyReason = "correct_streak_3";
+    } else if (session.correctStreak >= 5 && nextDifficulty === "medium") {
       nextDifficulty = "hard";
+      difficultyReason = "correct_streak_5";
     }
   } else {
-    if (lastDifficultyIndex > 0) {
-      nextDifficulty = difficultyOrder[lastDifficultyIndex - 1];
-    } else {
+    // Reset streak and potentially decrease difficulty
+    session.correctStreak = 0;
+
+    // Decrease difficulty if struggling
+    if (session.strikesLeft <= 1 && nextDifficulty === "hard") {
+      nextDifficulty = "medium";
+      difficultyReason = "low_strikes_hard";
+    } else if (session.strikesLeft <= 1 && nextDifficulty === "medium") {
       nextDifficulty = "easy";
+      difficultyReason = "low_strikes_medium";
     }
-    if (lastQuestion.subTopic) {
-      queryOptions.subTopic = lastQuestion.subTopic;
+
+    // Additional difficulty adjustment based on recent performance
+    const recentQuestions = session.questionHistory.slice(-5);
+    if (recentQuestions.length >= 3) {
+      const recentIncorrect = session.incorrectAnswers;
+      const totalRecent = session.correctAnswers + session.incorrectAnswers;
+      const recentAccuracy = session.correctAnswers / totalRecent;
+
+      if (recentAccuracy < 0.4 && nextDifficulty !== "easy") {
+        nextDifficulty =
+          difficultyOrder[
+            Math.max(0, difficultyOrder.indexOf(nextDifficulty) - 1)
+          ];
+        difficultyReason = "low_recent_accuracy";
+      }
     }
   }
 
-  queryOptions.difficulty = nextDifficulty;
+  // Build query to find next question
+  let queryOptions = {
+    subject: session.subject,
+    _id: { $nin: session.questionHistory }, // Exclude already asked questions
+    difficulty: nextDifficulty,
+  };
+
+  // Try to find a question with the target difficulty
   let nextQuestion = await Question.findOne(queryOptions);
 
+  // Fallback: try other difficulties if none found
   if (!nextQuestion) {
-    delete queryOptions.subTopic;
-    nextQuestion = await Question.findOne(queryOptions);
+    delete queryOptions.difficulty;
+
+    // Try each difficulty level
+    for (const difficulty of difficultyOrder) {
+      queryOptions.difficulty = difficulty;
+      nextQuestion = await Question.findOne(queryOptions);
+      if (nextQuestion) {
+        nextDifficulty = difficulty;
+        difficultyReason = "fallback_available";
+        break;
+      }
+    }
   }
 
+  // Final fallback: any question in subject not yet asked
   if (!nextQuestion) {
     delete queryOptions.difficulty;
     nextQuestion = await Question.findOne(queryOptions);
+    if (nextQuestion) {
+      nextDifficulty = nextQuestion.difficulty;
+      difficultyReason = "fallback_any";
+    }
+  }
+
+  // Update session difficulty tracking and add timer duration
+  if (nextQuestion) {
+    session.currentDifficulty = nextDifficulty;
+    session.difficultyProgression.push({
+      questionIndex: session.currentQuestionIndex + 1,
+      difficulty: nextDifficulty,
+      reason: difficultyReason,
+    });
+
+    // Add timer duration based on difficulty and question type
+    nextQuestion.timerDuration = getTimerDuration(
+      nextDifficulty,
+      nextQuestion.type
+    );
   }
 
   return nextQuestion;
+}
+
+// --- Timer Duration Calculator ---
+function getTimerDuration(difficulty, questionType) {
+  const timers = {
+    easy: {
+      mcq: 30, // 30 seconds
+      integer: 45, // 45 seconds
+      code: 60, // 1 minute
+    },
+    medium: {
+      mcq: 45, // 45 seconds
+      integer: 60, // 1 minute
+      code: 180, // 3 minutes
+    },
+    hard: {
+      mcq: 180, // 3 minutes
+      integer: 300, // 5 minutes
+      code: 600, // 10 minutes
+    },
+  };
+
+  const duration = timers[difficulty]?.[questionType] || 30; // Default 30 seconds
+  console.log(
+    `[DEBUG] Timer Duration - Difficulty: ${difficulty}, Type: ${questionType}, Duration: ${duration}s`
+  );
+  return duration;
 }
 
 // --- Engine 2: Dynamic Persona ---
@@ -110,4 +193,5 @@ export {
   getDevilDialogue,
   validateAnswer,
   findWeakestLink,
+  getTimerDuration,
 };

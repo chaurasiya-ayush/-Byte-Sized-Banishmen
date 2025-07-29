@@ -14,6 +14,7 @@ import {
   FaUsers,
   FaPlay,
   FaPause,
+  FaFire,
 } from "react-icons/fa";
 import { GiLevelEndFlag, GiCrown, GiFist } from "react-icons/gi";
 import GauntletSetupModal from "../components/GauntletSetupModal";
@@ -78,7 +79,6 @@ const StatsCard = ({ stats }) => {
   const xpPercentage =
     stats.xpToNextLevel > 0 ? (stats.xp / stats.xpToNextLevel) * 100 : 0;
 
-  // Animated XP RING (using SVG only for demo!)
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -86,44 +86,8 @@ const StatsCard = ({ stats }) => {
       transition={{ duration: 1, type: "spring", delay: 0.2 }}
       className="bg-gradient-to-br from-black/80 via-red-900/70 to-black/80 border-2 border-red-700/40 rounded-2xl p-6 shadow-xl shadow-red-800/30 relative overflow-hidden"
     >
-      {/* Animated glow ring */}
-      <div className="absolute right-4 top-4">
-        <svg width={56} height={56} className="rotate-[-35deg]">
-          <circle
-            cx={28}
-            cy={28}
-            r={24}
-            fill="none"
-            stroke="#1c1c1c"
-            strokeWidth="6"
-            opacity="0.5"
-          />
-          <motion.circle
-            cx={28}
-            cy={28}
-            r={24}
-            fill="none"
-            stroke="url(#fire-xp)"
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeDasharray={2 * Math.PI * 24}
-            strokeDashoffset={2 * Math.PI * 24 * (1 - xpPercentage / 100)}
-            initial={{ strokeDashoffset: 2 * Math.PI * 24 }}
-            animate={{
-              strokeDashoffset: 2 * Math.PI * 24 * (1 - xpPercentage / 100),
-            }}
-            transition={{ duration: 1.5, type: "spring" }}
-            style={{ filter: "drop-shadow(0 0 12px #f87171bb)" }}
-          />
-          <defs>
-            <linearGradient id="fire-xp" x1="0" y1="0" x2="1" y2="1">
-              <stop stopColor="#ff3b0f" />
-              <stop offset="0.6" stopColor="#fae81e" />
-              <stop offset="1" stopColor="#ff2b5e" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
+      {/* XP Icon instead of animated glow ring */}
+      <div className="absolute right-4 top-4"></div>
       <h3 className="text-lg font-extrabold text-orange-400 mb-3 tracking-wider">
         HELLFIRE XP
       </h3>
@@ -157,8 +121,8 @@ const StatsCard = ({ stats }) => {
           },
           {
             icon: <GiFist className="text-red-400" />,
-            label: "Souls Claimed",
-            value: stats.soulsClaimed,
+            label: "Sessions Won",
+            value: stats.soulsClaimed || 0,
           },
           {
             icon: <FaTachometerAlt className="text-orange-400" />,

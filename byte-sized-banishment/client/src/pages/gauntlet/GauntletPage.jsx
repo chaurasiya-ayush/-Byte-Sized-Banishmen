@@ -16,6 +16,7 @@ import {
   FaCode,
   FaPaperPlane,
   FaExclamationTriangle,
+  FaQuestionCircle,
 } from "react-icons/fa";
 import { HiChartBar } from "react-icons/hi";
 import { MdVisibility, MdVisibilityOff } from "react-icons/md";
@@ -25,35 +26,125 @@ import DevilDialogue from "./components/DevilDialogue";
 import StatusBar from "./components/StatusBar";
 import AnswerZone from "./components/AnswerZone";
 import QuitModal from "./components/QuitModal";
-import PenanceModal from "./components/PenanceModal"; // <-- IMPORT NEW COMPONENT
+import PenanceModal from "./components/PenanceModal";
+import QuestionTimer from "./components/QuestionTimer";
+import SessionResultsModal from "../../components/SessionResultsModal";
 
 const GauntletPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [session, setSession] = useState(location.state?.sessionData);
-  const [currentQuestion, setCurrentQuestion] = useState(
-    location.state?.sessionData?.question
-  );
+  // Timer duration calculator function
+  const getTimerDuration = (difficulty, questionType) => {
+    const timers = {
+      easy: {
+        mcq: 30, // 30 seconds
+        integer: 45, // 45 seconds
+        code: 60, // 1 minute
+      },
+      medium: {
+        mcq: 45, // 45 seconds
+        integer: 60, // 1 minute
+        code: 180, // 3 minutes
+      },
+      hard: {
+        mcq: 180, // 3 minutes
+        integer: 300, // 5 minutes
+        code: 600, // 10 minutes
+      },
+    };
+
+    return timers[difficulty]?.[questionType] || 30; // Default 30 seconds
+  };
+
+  // Initialize session state with persistence
+  const [session, setSession] = useState(() => {
+    // Try to restore from localStorage first, then from location state
+    const savedSession = localStorage.getItem("gauntlet-active-session");
+    if (savedSession) {
+      try {
+        return JSON.parse(savedSession);
+      } catch (error) {
+        console.error("Error parsing saved session:", error);
+        localStorage.removeItem("gauntlet-active-session");
+      }
+    }
+    return location.state?.sessionData;
+  });
+
+  const [currentQuestion, setCurrentQuestion] = useState(() => {
+    // Try to restore current question from localStorage first
+    const savedQuestion = localStorage.getItem("gauntlet-current-question");
+    if (savedQuestion) {
+      try {
+        return JSON.parse(savedQuestion);
+      } catch (error) {
+        console.error("Error parsing saved question:", error);
+        localStorage.removeItem("gauntlet-current-question");
+      }
+    }
+    return location.state?.sessionData?.question;
+  });
+
   const [userAnswer, setUserAnswer] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState(null);
-  const [stats, setStats] = useState({
-    strikesLeft: 3,
-    score: 0,
-    level: 1,
-    rank: "Novice",
-    questionNum: 1,
-    correctStreak: 0,
-    sessionTime: "00:00",
+  const [stats, setStats] = useState(() => {
+    // Try to restore stats from localStorage first
+    const savedStats = localStorage.getItem("gauntlet-stats");
+    if (savedStats) {
+      try {
+        return JSON.parse(savedStats);
+      } catch (error) {
+        console.error("Error parsing saved stats:", error);
+        localStorage.removeItem("gauntlet-stats");
+      }
+    }
+    return {
+      strikesLeft: 3,
+      score: 0,
+      level: 1,
+      rank: "Novice",
+      questionNum: 1,
+      correctStreak: 0,
+      sessionTime: "00:00",
+    };
   });
   const [isQuitModalOpen, setQuitModalOpen] = useState(false);
-  const [activePenance, setActivePenance] = useState(null); // <-- NEW STATE FOR PUNISHMENT
+  const [activePenance, setActivePenance] = useState(null);
+  const [sessionResults, setSessionResults] = useState(null);
+  const [isSessionResultsOpen, setIsSessionResultsOpen] = useState(false);
+  const [sessionProgress, setSessionProgress] = useState(() => {
+    // Try to restore session progress from localStorage first
+    const savedProgress = localStorage.getItem("gauntlet-session-progress");
+    if (savedProgress) {
+      try {
+        return JSON.parse(savedProgress);
+      } catch (error) {
+        console.error("Error parsing saved progress:", error);
+        localStorage.removeItem("gauntlet-session-progress");
+      }
+    }
+    return {
+      currentQuestion: 1,
+      totalQuestions: 15,
+      correctAnswers: 0,
+      incorrectAnswers: 0,
+      currentDifficulty: "easy",
+      correctStreak: 0,
+    };
+  });
+  const [timerActive, setTimerActive] = useState(true);
+  const [questionStartTime, setQuestionStartTime] = useState(() => {
+    // Restore question start time from localStorage
+    const savedStartTime = localStorage.getItem("gauntlet-question-start-time");
+    return savedStartTime ? parseInt(savedStartTime) : Date.now();
+  });
   const [isStatusBarOpen, setIsStatusBarOpen] = useState(() => {
     // Load from localStorage, default to false (hidden)
     const saved = localStorage.getItem("gauntlet-status-bar-open");
     return saved ? JSON.parse(saved) : false;
-  }); // <-- NEW STATE FOR STATUS BAR TOGGLE
+  });
 
   useEffect(() => {
     if (!session) {
@@ -61,6 +152,40 @@ const GauntletPage = () => {
       navigate("/dashboard");
     }
   }, [session, navigate]);
+
+  // Persist session state to localStorage
+  useEffect(() => {
+    if (session) {
+      localStorage.setItem("gauntlet-active-session", JSON.stringify(session));
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (currentQuestion) {
+      localStorage.setItem(
+        "gauntlet-current-question",
+        JSON.stringify(currentQuestion)
+      );
+    }
+  }, [currentQuestion]);
+
+  useEffect(() => {
+    localStorage.setItem("gauntlet-stats", JSON.stringify(stats));
+  }, [stats]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "gauntlet-session-progress",
+      JSON.stringify(sessionProgress)
+    );
+  }, [sessionProgress]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "gauntlet-question-start-time",
+      questionStartTime.toString()
+    );
+  }, [questionStartTime]);
 
   // Persist status bar state to localStorage
   useEffect(() => {
@@ -70,8 +195,65 @@ const GauntletPage = () => {
     );
   }, [isStatusBarOpen]);
 
+  // Clear gauntlet session data from localStorage
+  const clearGauntletSession = () => {
+    localStorage.removeItem("gauntlet-active-session");
+    localStorage.removeItem("gauntlet-current-question");
+    localStorage.removeItem("gauntlet-current-question-id");
+    localStorage.removeItem("gauntlet-stats");
+    localStorage.removeItem("gauntlet-session-progress");
+    localStorage.removeItem("gauntlet-question-start-time");
+  };
+
   useEffect(() => {
     if (currentQuestion) {
+      setTimerActive(true);
+
+      // Calculate timer duration based on difficulty and type
+      const calculatedDuration = getTimerDuration(
+        currentQuestion.difficulty,
+        currentQuestion.type
+      );
+      console.log(
+        `[DEBUG] Question received - ID: ${currentQuestion._id}, Difficulty: ${currentQuestion.difficulty}, Type: ${currentQuestion.type}, Calculated Timer Duration: ${calculatedDuration}s`
+      );
+
+      // Only set question start time if it's not already saved in localStorage
+      // (i.e., this is a genuinely new question, not a page refresh)
+      const savedStartTime = localStorage.getItem(
+        "gauntlet-question-start-time"
+      );
+      const savedQuestionId = localStorage.getItem(
+        "gauntlet-current-question-id"
+      );
+
+      try {
+        const currentQuestionFromStorage = JSON.parse(
+          localStorage.getItem("gauntlet-current-question") || "{}"
+        );
+        const isNewQuestion =
+          !savedStartTime ||
+          !savedQuestionId ||
+          savedQuestionId !== currentQuestion._id;
+
+        if (isNewQuestion) {
+          const newStartTime = Date.now();
+          setQuestionStartTime(newStartTime);
+          localStorage.setItem(
+            "gauntlet-current-question-id",
+            currentQuestion._id
+          );
+        }
+      } catch (error) {
+        // If there's an error parsing, treat as new question
+        const newStartTime = Date.now();
+        setQuestionStartTime(newStartTime);
+        localStorage.setItem(
+          "gauntlet-current-question-id",
+          currentQuestion._id
+        );
+      }
+
       if (currentQuestion.type === "code") {
         // Let the CodeEditorComponent handle the default template based on subject
         // No need to set a default here as the editor will use its own language-specific template
@@ -81,6 +263,85 @@ const GauntletPage = () => {
       }
     }
   }, [currentQuestion]);
+
+  const handleTimeout = async () => {
+    if (!currentQuestion || !session || !timerActive) return;
+
+    setTimerActive(false);
+    setLoading(true);
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const payload = {
+        sessionId: session.sessionId,
+        questionId: currentQuestion._id,
+      };
+
+      const { data } = await axios.post(
+        "http://localhost:5000/api/gauntlet/timeout",
+        payload,
+        config
+      );
+
+      setFeedback(data.feedback);
+
+      if (data.isGameOver) {
+        // Handle session completion (15 questions) or failure (3 strikes)
+        if (data.sessionSummary) {
+          setSessionResults({
+            ...data.sessionSummary,
+            completionReason: data.sessionSummary.completionReason,
+            punishment: data.punishment || null,
+          });
+          setIsSessionResultsOpen(true);
+        } else if (data.punishment) {
+          // Fallback for older punishment system
+          setActivePenance(data.punishment);
+        } else {
+          toast.error(data.feedback?.text || "Time's up! Session ended!", {
+            duration: 5000,
+          });
+          navigate("/dashboard");
+        }
+        return;
+      }
+
+      // Update session progress from backend response
+      if (data.sessionProgress) {
+        setSessionProgress(data.sessionProgress);
+      }
+
+      // Update question number in stats
+      setStats((prev) => ({
+        ...data.updatedStats,
+        questionNum:
+          data.sessionProgress?.currentQuestion || prev.questionNum + 1,
+      }));
+
+      // Show timeout feedback
+      toast.error(
+        data.feedback?.text || "Time's up! Moving to next question.",
+        {
+          duration: 3000,
+          position: "bottom-center",
+          style: {
+            background: "#1f2937",
+            color: "#f3f4f6",
+            border: "1px solid #dc2626",
+          },
+        }
+      );
+
+      setCurrentQuestion(data.nextQuestion);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "An error occurred.");
+      clearGauntletSession(); // Clear session data on timeout error
+      navigate("/dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (userAnswer === "") {
@@ -94,6 +355,8 @@ const GauntletPage = () => {
       });
       return;
     }
+
+    setTimerActive(false); // Stop the timer when submitting
     setLoading(true);
 
     try {
@@ -113,20 +376,40 @@ const GauntletPage = () => {
       setFeedback(data.feedback);
 
       if (data.isGameOver) {
-        // --- PENANCE LOGIC ---
-        if (data.punishment) {
-          setActivePenance(data.punishment); // Show the modal
+        // Handle session completion (15 questions) or failure (3 strikes)
+        if (data.sessionSummary) {
+          setSessionResults({
+            ...data.sessionSummary,
+            completionReason: data.sessionSummary.completionReason,
+            punishment: data.punishment || null,
+          });
+          setIsSessionResultsOpen(true);
+        } else if (data.punishment) {
+          // Fallback for older punishment system
+          setActivePenance(data.punishment);
         } else {
-          toast.error(
-            data.feedback?.text || "The Devil has claimed your soul!",
-            { duration: 5000 }
-          );
+          toast.error(data.feedback?.text || "Session ended!", {
+            duration: 5000,
+          });
+          clearGauntletSession(); // Clear session data when session ends without modal
           navigate("/dashboard");
         }
         return;
       }
 
-      // ... (rest of the toast and state update logic remains the same)
+      // Update session progress from backend response
+      if (data.sessionProgress) {
+        setSessionProgress(data.sessionProgress);
+      }
+
+      // Update question number in stats
+      setStats((prev) => ({
+        ...data.updatedStats,
+        questionNum:
+          data.sessionProgress?.currentQuestion || prev.questionNum + 1,
+      }));
+
+      // Show feedback toasts
       const toastOptions = {
         duration: 2000,
         position: "bottom-center",
@@ -136,6 +419,7 @@ const GauntletPage = () => {
           border: "1px solid #374151",
         },
       };
+
       if (data.feedback.text.includes("Level")) {
         toast.success(data.feedback.text, {
           ...toastOptions,
@@ -159,13 +443,11 @@ const GauntletPage = () => {
           },
         });
       }
+
       setCurrentQuestion(data.nextQuestion);
-      setStats((prev) => ({
-        ...data.updatedStats,
-        questionNum: prev.questionNum + 1,
-      }));
     } catch (error) {
       toast.error(error.response?.data?.message || "An error occurred.");
+      clearGauntletSession(); // Clear session data on submit error
       navigate("/dashboard");
     } finally {
       setLoading(false);
@@ -173,6 +455,7 @@ const GauntletPage = () => {
   };
 
   const handleQuit = () => {
+    clearGauntletSession(); // Clear session data when quitting
     toast("You have fled the trial.", {
       icon: <FaRunning className="text-orange-400" />,
       style: {
@@ -185,7 +468,15 @@ const GauntletPage = () => {
   };
 
   const handleAcknowledgePenance = () => {
+    clearGauntletSession(); // Clear session data when punishment is acknowledged
     setActivePenance(null);
+    navigate("/dashboard");
+  };
+
+  const handleCloseSessionResults = () => {
+    clearGauntletSession(); // Clear session data when session results are closed
+    setIsSessionResultsOpen(false);
+    setSessionResults(null);
     navigate("/dashboard");
   };
 
@@ -217,6 +508,13 @@ const GauntletPage = () => {
       <PenanceModal
         punishment={activePenance}
         onAcknowledge={handleAcknowledgePenance}
+      />
+      <SessionResultsModal
+        isOpen={isSessionResultsOpen}
+        onClose={handleCloseSessionResults}
+        sessionSummary={sessionResults}
+        completionReason={sessionResults?.completionReason}
+        punishment={sessionResults?.punishment}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-gray-950 via-black to-red-900 text-white flex relative overflow-hidden">
@@ -260,7 +558,9 @@ const GauntletPage = () => {
 
           {/* Always Visible Hearts (Health) */}
           <motion.div
-            className="fixed top-20 left-4 z-30 bg-black/90 backdrop-blur-sm border-2 border-red-500/50 p-2 rounded-lg shadow-lg"
+            className={`fixed top-20 z-30 bg-black/90 backdrop-blur-sm border-2 border-red-500/50 p-2 rounded-lg shadow-lg transition-all duration-300 ${
+              isStatusBarOpen ? "left-[300px]" : "left-4"
+            }`}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
@@ -294,6 +594,22 @@ const GauntletPage = () => {
             </div>
           </motion.div>
 
+          {/* Question Timer */}
+          {currentQuestion && (
+            <QuestionTimer
+              duration={getTimerDuration(
+                currentQuestion.difficulty,
+                currentQuestion.type
+              )}
+              onTimeout={handleTimeout}
+              isActive={timerActive && !loading}
+              questionId={currentQuestion._id}
+              difficulty={currentQuestion.difficulty}
+              questionType={currentQuestion.type}
+              startTime={questionStartTime}
+            />
+          )}
+
           {/* Quick Info Panel (when status bar is collapsed) */}
           <AnimatePresence>
             {!isStatusBarOpen && (
@@ -304,6 +620,16 @@ const GauntletPage = () => {
                 exit={{ opacity: 0, x: -20, scale: 0.9 }}
                 transition={{ duration: 0.2 }}
               >
+                <div className="flex items-center gap-2">
+                  <FaQuestionCircle className="text-blue-400 text-xs" />
+                  <span
+                    className="text-blue-300 font-bold text-xs"
+                    style={{ fontFamily: "'Orbitron', monospace" }}
+                  >
+                    {sessionProgress.currentQuestion}/
+                    {sessionProgress.totalQuestions}
+                  </span>
+                </div>
                 <div className="flex items-center gap-2">
                   <FaStar className="text-yellow-400 text-xs" />
                   <span
@@ -328,7 +654,7 @@ const GauntletPage = () => {
                     className="text-green-300 font-bold text-xs"
                     style={{ fontFamily: "'Orbitron', monospace" }}
                   >
-                    {stats.correctStreak || 0}
+                    {sessionProgress.correctStreak || 0}
                   </span>
                 </div>
               </motion.div>
@@ -349,7 +675,11 @@ const GauntletPage = () => {
                   opacity: { duration: 0.2 },
                 }}
               >
-                <StatusBar stats={stats} currentQuestion={currentQuestion} />
+                <StatusBar
+                  stats={stats}
+                  currentQuestion={currentQuestion}
+                  sessionProgress={sessionProgress}
+                />
               </motion.div>
             )}
           </AnimatePresence>
