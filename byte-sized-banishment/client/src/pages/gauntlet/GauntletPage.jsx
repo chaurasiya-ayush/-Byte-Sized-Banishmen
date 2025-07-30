@@ -17,6 +17,7 @@ import {
   FaPaperPlane,
   FaExclamationTriangle,
   FaQuestionCircle,
+  FaQuestionCircle as FaInfo,
 } from "react-icons/fa";
 import { HiChartBar } from "react-icons/hi";
 import { MdVisibility, MdVisibilityOff } from "react-icons/md";
@@ -29,6 +30,7 @@ import QuitModal from "./components/QuitModal";
 import PenanceModal from "./components/PenanceModal";
 import QuestionTimer from "./components/QuestionTimer";
 import SessionResultsModal from "../../components/SessionResultsModal";
+import InstructionsModal from "./components/InstructionsModal";
 
 const GauntletPage = () => {
   const location = useLocation();
@@ -114,6 +116,7 @@ const GauntletPage = () => {
   const [activePenance, setActivePenance] = useState(null);
   const [sessionResults, setSessionResults] = useState(null);
   const [isSessionResultsOpen, setIsSessionResultsOpen] = useState(false);
+  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
   const [sessionProgress, setSessionProgress] = useState(() => {
     // Try to restore session progress from localStorage first
     const savedProgress = localStorage.getItem("gauntlet-session-progress");
@@ -427,16 +430,32 @@ const GauntletPage = () => {
           icon: "🎉",
         });
       } else if (data.result === "correct") {
-        toast.success("Correct Answer!", {
+        let successMessage = "Correct Answer!";
+
+        // Show execution feedback for code questions
+        if (data.executionFeedback && currentQuestion.type === "code") {
+          successMessage = data.executionFeedback;
+        }
+
+        toast.success(successMessage, {
           ...toastOptions,
+          duration: data.executionFeedback ? 4000 : 2000, // Longer duration for execution feedback
           style: {
             ...toastOptions.style,
             border: "1px solid #16a34a",
           },
         });
       } else {
-        toast.error("Incorrect Answer!", {
+        let errorMessage = "Incorrect Answer!";
+
+        // Show execution feedback for code questions
+        if (data.executionFeedback && currentQuestion.type === "code") {
+          errorMessage = data.executionFeedback;
+        }
+
+        toast.error(errorMessage, {
           ...toastOptions,
+          duration: data.executionFeedback ? 5000 : 2000, // Longer duration for execution feedback
           style: {
             ...toastOptions.style,
             border: "1px solid #dc2626",
@@ -562,6 +581,11 @@ const GauntletPage = () => {
         sessionSummary={sessionResults}
         completionReason={sessionResults?.completionReason}
         punishment={sessionResults?.punishment}
+      />
+      <InstructionsModal
+        isOpen={isInstructionsOpen}
+        onClose={() => setIsInstructionsOpen(false)}
+        questionType={currentQuestion?.type}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-gray-950 via-black to-red-900 text-white flex relative overflow-hidden">
@@ -757,17 +781,28 @@ const GauntletPage = () => {
                       <span className="text-orange-400">
                         Topic: {currentQuestion.subject}
                       </span>
-                      <span
-                        className={`capitalize px-3 py-1 rounded-md text-xs font-bold ${
-                          currentQuestion.difficulty === "hard"
-                            ? "bg-red-600 text-white"
-                            : currentQuestion.difficulty === "medium"
-                            ? "bg-orange-500 text-white"
-                            : "bg-yellow-500 text-black"
-                        }`}
-                      >
-                        {currentQuestion.difficulty}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setIsInstructionsOpen(true)}
+                          className="bg-blue-600/20 hover:bg-blue-500/30 border border-blue-500/50 hover:border-blue-400 text-blue-300 hover:text-blue-200 px-3 py-1 rounded-lg transition-all duration-200 flex items-center gap-2 text-xs"
+                          style={{ fontFamily: "'Orbitron', monospace" }}
+                          title="View instructions for this question type"
+                        >
+                          <FaInfo className="text-xs" />
+                          Instructions
+                        </button>
+                        <span
+                          className={`capitalize px-3 py-1 rounded-md text-xs font-bold ${
+                            currentQuestion.difficulty === "hard"
+                              ? "bg-red-600 text-white"
+                              : currentQuestion.difficulty === "medium"
+                              ? "bg-orange-500 text-white"
+                              : "bg-yellow-500 text-black"
+                          }`}
+                        >
+                          {currentQuestion.difficulty}
+                        </span>
+                      </div>
                     </div>
                     <h2
                       className="text-2xl md:text-3xl font-bold leading-tight text-red-300"

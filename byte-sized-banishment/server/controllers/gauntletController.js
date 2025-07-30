@@ -444,9 +444,18 @@ export const submitAnswer = async (req, res) => {
     if (!session.isActive)
       return res.status(400).json({ message: "This session is over." });
 
-    const { isCorrect } = validateAnswer(answer, question);
+    // Validate answer (now async for code execution)
+    const validationResult = await validateAnswer(answer, question);
+    const { isCorrect } = validationResult;
+
     let devilDialogue;
     let sessionXpGained = 0;
+    let executionFeedback = null;
+
+    // Store execution feedback for code questions
+    if (question.type === "code" && validationResult.feedback) {
+      executionFeedback = validationResult.feedback;
+    }
 
     // Update session statistics
     if (isCorrect) {
@@ -691,6 +700,7 @@ export const submitAnswer = async (req, res) => {
     res.json({
       result: isCorrect ? "correct" : "incorrect",
       feedback: devilDialogue,
+      executionFeedback: executionFeedback, // Add execution feedback for code questions
       nextQuestion: nextQuestion,
       sessionProgress: {
         currentQuestion: session.currentQuestionIndex,
