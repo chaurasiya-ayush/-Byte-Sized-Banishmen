@@ -127,7 +127,7 @@ const GauntletPage = () => {
     }
     return {
       currentQuestion: 1,
-      totalQuestions: 15,
+      totalQuestions: "unlimited",
       correctAnswers: 0,
       incorrectAnswers: 0,
       currentDifficulty: "easy",
@@ -454,17 +454,64 @@ const GauntletPage = () => {
     }
   };
 
-  const handleQuit = () => {
-    clearGauntletSession(); // Clear session data when quitting
-    toast("You have fled the trial.", {
-      icon: <FaRunning className="text-orange-400" />,
-      style: {
-        background: "#1f2937",
-        color: "#f3f4f6",
-        border: "1px solid #374151",
-      },
-    });
-    navigate("/dashboard");
+  const handleQuit = async () => {
+    if (!session || !currentQuestion) {
+      clearGauntletSession();
+      navigate("/dashboard");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const payload = {
+        sessionId: session.sessionId,
+      };
+
+      const { data } = await axios.post(
+        "http://localhost:5000/api/gauntlet/quit",
+        payload,
+        config
+      );
+
+      // Show session summary modal
+      if (data.sessionSummary) {
+        setSessionResults({
+          ...data.sessionSummary,
+          completionReason: "abandoned",
+        });
+        setIsSessionResultsOpen(true);
+      } else {
+        // Fallback if no summary
+        clearGauntletSession();
+        toast("You have fled the trial.", {
+          icon: <FaRunning className="text-orange-400" />,
+          style: {
+            background: "#1f2937",
+            color: "#f3f4f6",
+            border: "1px solid #374151",
+          },
+        });
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error("Error quitting session:", error);
+      // Fallback to simple quit
+      clearGauntletSession();
+      toast("Session ended.", {
+        icon: <FaRunning className="text-orange-400" />,
+        style: {
+          background: "#1f2937",
+          color: "#f3f4f6",
+          border: "1px solid #374151",
+        },
+      });
+      navigate("/dashboard");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAcknowledgePenance = () => {
@@ -626,8 +673,10 @@ const GauntletPage = () => {
                     className="text-blue-300 font-bold text-xs"
                     style={{ fontFamily: "'Orbitron', monospace" }}
                   >
-                    {sessionProgress.currentQuestion}/
-                    {sessionProgress.totalQuestions}
+                    Q{sessionProgress.currentQuestion}
+                    {sessionProgress.totalQuestions === "unlimited"
+                      ? " / ∞"
+                      : ` / ${sessionProgress.totalQuestions}`}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

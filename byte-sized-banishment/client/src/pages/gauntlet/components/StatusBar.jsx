@@ -12,10 +12,13 @@ import {
 import { GiDevilMask } from "react-icons/gi";
 
 const StatusBar = ({ stats, currentQuestion, sessionProgress }) => {
-  // Calculate session progress (based on 15-question session)
+  // Calculate session progress (now unlimited)
   const questionsAnswered =
     sessionProgress?.currentQuestion || stats.questionNum || 1;
-  const totalQuestions = sessionProgress?.totalQuestions || 15;
+  const totalQuestions =
+    sessionProgress?.totalQuestions === "Unlimited"
+      ? "∞"
+      : sessionProgress?.totalQuestions || "∞";
   const correctAnswers = sessionProgress?.correctAnswers || 0;
   const incorrectAnswers = sessionProgress?.incorrectAnswers || 0;
   const currentDifficulty = sessionProgress?.currentDifficulty || "easy";
@@ -45,8 +48,8 @@ const StatusBar = ({ stats, currentQuestion, sessionProgress }) => {
     },
     {
       icon: <FaQuestionCircle className="text-blue-400" />,
-      label: "Progress",
-      value: `${questionsAnswered}/${totalQuestions}`,
+      label: "Questions",
+      value: `${questionsAnswered}`,
       iconComponent: FaQuestionCircle,
     },
     {

@@ -126,7 +126,7 @@ const StatsCard = ({ stats }) => {
           },
           {
             icon: <FaTachometerAlt className="text-orange-400" />,
-            label: "Streak",
+            label: "Max Session Streak",
             value: stats.devilsFavor,
           },
         ].map((item, idx) => (

@@ -78,6 +78,9 @@ export const handleTimeout = async (req, res) => {
     session.correctStreak = 0;
     session.currentQuestionIndex += 1;
 
+    // Update difficulty progression
+    updateDifficultyProgression(session, false);
+
     // Update user progress tracking for timeout (counts as incorrect)
     const progressKey = question.subTopic
       ? `${question.subject}-${question.subTopic}`
@@ -96,12 +99,22 @@ export const handleTimeout = async (req, res) => {
       question.type
     );
 
-    // Check for session end conditions
+    // Check for session end conditions - Only strikes, no question limit
     if (session.strikesLeft <= 0) {
       session.isActive = false;
       session.sessionEndTime = new Date();
       session.completionReason = "failed";
-      await Promise.all([session.save(), user.save()]);
+
+      // Update user's max session streak if this session was better
+      const user_update = await User.findById(req.user._id);
+      if (
+        !user_update.maxSessionStreak ||
+        session.currentQuestionIndex - 1 > user_update.maxSessionStreak
+      ) {
+        user_update.maxSessionStreak = session.currentQuestionIndex - 1;
+      }
+
+      await Promise.all([session.save(), user_update.save()]);
 
       const punishment = generatePunishment();
       const sessionDuration = Math.round(
@@ -115,7 +128,7 @@ export const handleTimeout = async (req, res) => {
         punishment: punishment,
         sessionSummary: {
           questionsCompleted: session.currentQuestionIndex - 1,
-          totalQuestions: session.totalQuestions,
+          totalQuestions: "Unlimited",
           correctAnswers: session.correctAnswers,
           incorrectAnswers: session.incorrectAnswers,
           finalScore: session.score,
@@ -123,39 +136,18 @@ export const handleTimeout = async (req, res) => {
           maxCorrectStreak: session.maxCorrectStreak,
           sessionDuration: sessionDuration,
           completionReason: "failed",
-        },
-      });
-    }
-
-    // Session Complete - Reached 15 questions
-    if (session.currentQuestionIndex >= session.totalQuestions) {
-      session.isActive = false;
-      session.sessionEndTime = new Date();
-      session.completionReason = "completed";
-      await Promise.all([session.save(), user.save()]);
-
-      const sessionDuration = Math.round(
-        (session.sessionEndTime - session.sessionStartTime) / 1000
-      );
-      const accuracyRate =
-        (session.correctAnswers / session.totalQuestions) * 100;
-
-      return res.json({
-        result: "timeout",
-        feedback: getDevilDialogue("SESSION_WIN"),
-        isGameOver: true,
-        sessionSummary: {
-          questionsCompleted: session.totalQuestions,
-          totalQuestions: session.totalQuestions,
-          correctAnswers: session.correctAnswers,
-          incorrectAnswers: session.incorrectAnswers,
-          finalScore: session.score,
-          totalXpGained: session.totalXpGained,
-          maxCorrectStreak: session.maxCorrectStreak,
-          accuracyRate: accuracyRate.toFixed(1),
-          sessionDuration: sessionDuration,
-          completionReason: "completed",
-          difficultyProgression: session.difficultyProgression,
+          highestDifficulty:
+            session.difficultyProgression.length > 0
+              ? Math.max(
+                  ...session.difficultyProgression.map((d) =>
+                    d.difficulty === "easy"
+                      ? 1
+                      : d.difficulty === "medium"
+                      ? 2
+                      : 3
+                  )
+                )
+              : 1,
         },
       });
     }
@@ -164,10 +156,21 @@ export const handleTimeout = async (req, res) => {
     const nextQuestion = await selectNextQuestion(session, question, false);
 
     if (!nextQuestion) {
+      // If no more questions, end session gracefully
       session.isActive = false;
       session.sessionEndTime = new Date();
       session.completionReason = "completed";
-      await Promise.all([session.save(), user.save()]);
+
+      // Update user's max session streak
+      const user_update = await User.findById(req.user._id);
+      if (
+        !user_update.maxSessionStreak ||
+        session.currentQuestionIndex - 1 > user_update.maxSessionStreak
+      ) {
+        user_update.maxSessionStreak = session.currentQuestionIndex - 1;
+      }
+
+      await Promise.all([session.save(), user_update.save()]);
 
       const sessionDuration = Math.round(
         (session.sessionEndTime - session.sessionStartTime) / 1000
@@ -179,7 +182,7 @@ export const handleTimeout = async (req, res) => {
         isGameOver: true,
         sessionSummary: {
           questionsCompleted: session.currentQuestionIndex - 1,
-          totalQuestions: session.totalQuestions,
+          totalQuestions: "Unlimited",
           correctAnswers: session.correctAnswers,
           incorrectAnswers: session.incorrectAnswers,
           finalScore: session.score,
@@ -187,6 +190,18 @@ export const handleTimeout = async (req, res) => {
           maxCorrectStreak: session.maxCorrectStreak,
           sessionDuration: sessionDuration,
           completionReason: "completed",
+          highestDifficulty:
+            session.difficultyProgression.length > 0
+              ? Math.max(
+                  ...session.difficultyProgression.map((d) =>
+                    d.difficulty === "easy"
+                      ? 1
+                      : d.difficulty === "medium"
+                      ? 2
+                      : 3
+                  )
+                )
+              : 1,
         },
       });
     }
@@ -200,7 +215,7 @@ export const handleTimeout = async (req, res) => {
       nextQuestion: nextQuestion,
       sessionProgress: {
         currentQuestion: session.currentQuestionIndex,
-        totalQuestions: session.totalQuestions,
+        totalQuestions: "Unlimited",
         correctAnswers: session.correctAnswers,
         incorrectAnswers: session.incorrectAnswers,
         currentDifficulty: session.currentDifficulty,
@@ -248,6 +263,64 @@ const getTimeoutDialogue = (difficulty, questionType) => {
   return { text: message, audioUrl: null };
 };
 
+// Difficulty progression logic
+const updateDifficultyProgression = (session, isCorrect) => {
+  const currentDifficulty = session.currentDifficulty;
+  let newDifficulty = currentDifficulty;
+  let difficultyChanged = false;
+
+  if (isCorrect) {
+    session.consecutiveCorrect += 1;
+    session.consecutiveIncorrect = 0; // Reset incorrect streak
+
+    // Easy -> Medium after 5 consecutive correct
+    if (currentDifficulty === "easy" && session.consecutiveCorrect >= 5) {
+      newDifficulty = "medium";
+      difficultyChanged = true;
+      session.consecutiveCorrect = 0; // Reset streak
+    }
+    // Medium -> Hard after 4 consecutive correct
+    else if (
+      currentDifficulty === "medium" &&
+      session.consecutiveCorrect >= 4
+    ) {
+      newDifficulty = "hard";
+      difficultyChanged = true;
+      session.consecutiveCorrect = 0; // Reset streak
+    }
+  } else {
+    session.consecutiveIncorrect += 1;
+    session.consecutiveCorrect = 0; // Reset correct streak
+
+    // Hard -> Medium after 1 incorrect
+    if (currentDifficulty === "hard" && session.consecutiveIncorrect >= 1) {
+      newDifficulty = "medium";
+      difficultyChanged = true;
+      session.consecutiveIncorrect = 0; // Reset streak
+    }
+    // Medium -> Easy after 2 consecutive incorrect
+    else if (
+      currentDifficulty === "medium" &&
+      session.consecutiveIncorrect >= 2
+    ) {
+      newDifficulty = "easy";
+      difficultyChanged = true;
+      session.consecutiveIncorrect = 0; // Reset streak
+    }
+  }
+
+  if (difficultyChanged) {
+    session.currentDifficulty = newDifficulty;
+    session.difficultyProgression.push({
+      questionIndex: session.currentQuestionIndex,
+      difficulty: newDifficulty,
+      reason: isCorrect ? "promoted_for_streak" : "demoted_for_mistakes",
+    });
+  }
+
+  return difficultyChanged;
+};
+
 // --- Controller Functions ---
 
 // Get available subjects
@@ -288,6 +361,9 @@ export const startGauntlet = async (req, res) => {
       subject,
       currentDifficulty: difficulty || "easy",
       sessionStartTime: new Date(),
+      totalQuestions: 999, // Unlimited questions
+      consecutiveCorrect: 0, // Track consecutive correct answers for difficulty progression
+      consecutiveIncorrect: 0, // Track consecutive incorrect answers for difficulty regression
     });
 
     const mockLastQuestion = {
@@ -320,7 +396,7 @@ export const startGauntlet = async (req, res) => {
       question: firstQuestion,
       sessionInfo: {
         currentQuestion: 1,
-        totalQuestions: session.totalQuestions,
+        totalQuestions: "Unlimited",
         subject: session.subject,
         difficulty: session.currentDifficulty,
       },
@@ -476,6 +552,24 @@ export const submitAnswer = async (req, res) => {
       }
     }
 
+    // Update difficulty progression
+    const difficultyChanged = updateDifficultyProgression(session, isCorrect);
+
+    // Add difficulty change message to dialogue if applicable
+    if (difficultyChanged && !devilDialogue) {
+      if (isCorrect) {
+        const newDiff = session.currentDifficulty;
+        devilDialogue = {
+          text: `Impressive streak! You've been promoted to ${newDiff.toUpperCase()} difficulty. Let's see if you can handle this!`,
+        };
+      } else {
+        const newDiff = session.currentDifficulty;
+        devilDialogue = {
+          text: `Struggling, are we? Difficulty decreased to ${newDiff.toUpperCase()}. Even the devil shows mercy... sometimes.`,
+        };
+      }
+    }
+
     if (!devilDialogue) {
       const trigger = isCorrect
         ? `CORRECT_ANSWER_${question.difficulty.toUpperCase()}`
@@ -486,11 +580,20 @@ export const submitAnswer = async (req, res) => {
     // Check for session end conditions
     session.currentQuestionIndex += 1;
 
-    // Game Over - Lost all strikes
+    // Game Over - Lost all strikes (only end condition now)
     if (session.strikesLeft <= 0) {
       session.isActive = false;
       session.sessionEndTime = new Date();
       session.completionReason = "failed";
+
+      // Update user's max session streak if this session was better
+      if (
+        !user.maxSessionStreak ||
+        session.currentQuestionIndex - 1 > user.maxSessionStreak
+      ) {
+        user.maxSessionStreak = session.currentQuestionIndex - 1;
+      }
+
       await Promise.all([session.save(), user.save()]);
 
       const punishment = generatePunishment();
@@ -505,7 +608,7 @@ export const submitAnswer = async (req, res) => {
         punishment: punishment,
         sessionSummary: {
           questionsCompleted: session.currentQuestionIndex - 1,
-          totalQuestions: session.totalQuestions,
+          totalQuestions: "Unlimited",
           correctAnswers: session.correctAnswers,
           incorrectAnswers: session.incorrectAnswers,
           finalScore: session.score,
@@ -513,51 +616,39 @@ export const submitAnswer = async (req, res) => {
           maxCorrectStreak: session.maxCorrectStreak,
           sessionDuration: sessionDuration,
           completionReason: "failed",
+          highestDifficulty:
+            session.difficultyProgression.length > 0
+              ? Math.max(
+                  ...session.difficultyProgression.map((d) =>
+                    d.difficulty === "easy"
+                      ? 1
+                      : d.difficulty === "medium"
+                      ? 2
+                      : 3
+                  )
+                )
+              : 1,
         },
       });
     }
 
-    // Session Complete - Reached 15 questions
-    if (session.currentQuestionIndex >= session.totalQuestions) {
-      session.isActive = false;
-      session.sessionEndTime = new Date();
-      session.completionReason = "completed";
-      await Promise.all([session.save(), user.save()]);
-
-      const sessionDuration = Math.round(
-        (session.sessionEndTime - session.sessionStartTime) / 1000
-      );
-      const accuracyRate =
-        (session.correctAnswers / session.totalQuestions) * 100;
-
-      return res.json({
-        result: isCorrect ? "correct" : "incorrect",
-        feedback: getDevilDialogue("SESSION_WIN"),
-        isGameOver: true,
-        sessionSummary: {
-          questionsCompleted: session.totalQuestions,
-          totalQuestions: session.totalQuestions,
-          correctAnswers: session.correctAnswers,
-          incorrectAnswers: session.incorrectAnswers,
-          finalScore: session.score,
-          totalXpGained: session.totalXpGained,
-          maxCorrectStreak: session.maxCorrectStreak,
-          accuracyRate: accuracyRate.toFixed(1),
-          sessionDuration: sessionDuration,
-          completionReason: "completed",
-          difficultyProgression: session.difficultyProgression,
-        },
-      });
-    }
-
-    // Continue session - get next question
+    // Continue session - get next question (no question limit)
     const nextQuestion = await selectNextQuestion(session, question, isCorrect);
 
     if (!nextQuestion) {
-      // No more questions available
+      // No more questions available - graceful end
       session.isActive = false;
       session.sessionEndTime = new Date();
       session.completionReason = "completed";
+
+      // Update user's max session streak
+      if (
+        !user.maxSessionStreak ||
+        session.currentQuestionIndex - 1 > user.maxSessionStreak
+      ) {
+        user.maxSessionStreak = session.currentQuestionIndex - 1;
+      }
+
       await Promise.all([session.save(), user.save()]);
 
       const sessionDuration = Math.round(
@@ -570,7 +661,7 @@ export const submitAnswer = async (req, res) => {
         isGameOver: true,
         sessionSummary: {
           questionsCompleted: session.currentQuestionIndex - 1,
-          totalQuestions: session.totalQuestions,
+          totalQuestions: "Unlimited",
           correctAnswers: session.correctAnswers,
           incorrectAnswers: session.incorrectAnswers,
           finalScore: session.score,
@@ -578,6 +669,18 @@ export const submitAnswer = async (req, res) => {
           maxCorrectStreak: session.maxCorrectStreak,
           sessionDuration: sessionDuration,
           completionReason: "completed",
+          highestDifficulty:
+            session.difficultyProgression.length > 0
+              ? Math.max(
+                  ...session.difficultyProgression.map((d) =>
+                    d.difficulty === "easy"
+                      ? 1
+                      : d.difficulty === "medium"
+                      ? 2
+                      : 3
+                  )
+                )
+              : 1,
         },
       });
     }
@@ -591,11 +694,13 @@ export const submitAnswer = async (req, res) => {
       nextQuestion: nextQuestion,
       sessionProgress: {
         currentQuestion: session.currentQuestionIndex,
-        totalQuestions: session.totalQuestions,
+        totalQuestions: "Unlimited",
         correctAnswers: session.correctAnswers,
         incorrectAnswers: session.incorrectAnswers,
         currentDifficulty: session.currentDifficulty,
         correctStreak: session.correctStreak,
+        consecutiveCorrect: session.consecutiveCorrect,
+        consecutiveIncorrect: session.consecutiveIncorrect,
       },
       updatedStats: {
         strikesLeft: session.strikesLeft,
@@ -670,6 +775,73 @@ export const startWeaknessDrill = async (req, res) => {
     });
   } catch (error) {
     console.error("Error starting weakness drill:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// Handle voluntary session quit
+export const quitSession = async (req, res) => {
+  const { sessionId } = req.body;
+  try {
+    const session = await GauntletSession.findById(sessionId);
+    const user = await User.findById(req.user._id);
+
+    if (!session || !user)
+      return res.status(404).json({ message: "Session or user not found." });
+
+    if (session.userId.toString() !== req.user._id.toString())
+      return res.status(401).json({ message: "Not authorized." });
+
+    if (!session.isActive)
+      return res.status(400).json({ message: "This session is already over." });
+
+    // End the session
+    session.isActive = false;
+    session.sessionEndTime = new Date();
+    session.completionReason = "abandoned";
+
+    // Update user's max session streak if this session was better
+    if (
+      !user.maxSessionStreak ||
+      session.currentQuestionIndex > user.maxSessionStreak
+    ) {
+      user.maxSessionStreak = session.currentQuestionIndex;
+    }
+
+    await Promise.all([session.save(), user.save()]);
+
+    const sessionDuration = Math.round(
+      (session.sessionEndTime - session.sessionStartTime) / 1000
+    );
+
+    res.json({
+      message: "Session ended voluntarily",
+      sessionSummary: {
+        questionsCompleted: session.currentQuestionIndex,
+        totalQuestions: "Unlimited",
+        correctAnswers: session.correctAnswers,
+        incorrectAnswers: session.incorrectAnswers,
+        finalScore: session.score,
+        totalXpGained: session.totalXpGained,
+        maxCorrectStreak: session.maxCorrectStreak,
+        sessionDuration: sessionDuration,
+        completionReason: "abandoned",
+        highestDifficulty:
+          session.difficultyProgression.length > 0
+            ? Math.max(
+                ...session.difficultyProgression.map((d) =>
+                  d.difficulty === "easy"
+                    ? 1
+                    : d.difficulty === "medium"
+                    ? 2
+                    : 3
+                )
+              )
+            : 1,
+      },
+    });
+  } catch (error) {
+    console.error("Error quitting session:", error);
     res.status(500).json({ message: "Server Error" });
   }
 };

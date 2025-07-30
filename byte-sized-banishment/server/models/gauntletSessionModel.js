@@ -11,7 +11,7 @@ const gauntletSessionSchema = new mongoose.Schema(
     strikesLeft: { type: Number, default: 3 },
     score: { type: Number, default: 0 },
     currentQuestionIndex: { type: Number, default: 0 },
-    totalQuestions: { type: Number, default: 15 }, // Fixed session length
+    totalQuestions: { type: Number, default: 999 }, // Unlimited session length
     questionHistory: [
       { type: mongoose.Schema.Types.ObjectId, ref: "Question" },
     ],
@@ -20,6 +20,8 @@ const gauntletSessionSchema = new mongoose.Schema(
     correctStreak: { type: Number, default: 0 },
     maxCorrectStreak: { type: Number, default: 0 }, // Best streak in session
     totalXpGained: { type: Number, default: 0 }, // Total XP earned this session
+    consecutiveCorrect: { type: Number, default: 0 }, // For difficulty progression
+    consecutiveIncorrect: { type: Number, default: 0 }, // For difficulty regression
     currentDifficulty: {
       type: String,
       enum: ["easy", "medium", "hard"],

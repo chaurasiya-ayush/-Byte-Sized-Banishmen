@@ -40,6 +40,7 @@ const userSchema = new mongoose.Schema(
     rank: { type: String, default: "Novice" },
     correctAnswers: { type: Number, default: 0 },
     dailyStreak: { type: Number, default: 0 },
+    maxSessionStreak: { type: Number, default: 0 }, // Maximum questions answered in a single session
     lastLogin: { type: Date, default: Date.now },
     activeEffect: { type: activeEffectSchema, default: () => ({}) },
     progress: { type: Map, of: subTopicProgressSchema, default: {} },

@@ -95,7 +95,9 @@ const SessionResultsModal = ({
               <div>
                 <p className="text-gray-400">Questions Completed</p>
                 <p className="text-white font-bold">
-                  {questionsCompleted}/{totalQuestions}
+                  {totalQuestions === "unlimited"
+                    ? questionsCompleted
+                    : `${questionsCompleted}/${totalQuestions}`}
                 </p>
               </div>
               <div>
