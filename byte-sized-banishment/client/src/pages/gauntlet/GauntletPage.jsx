@@ -200,12 +200,18 @@ const GauntletPage = () => {
 
   // Clear gauntlet session data from localStorage
   const clearGauntletSession = () => {
-    localStorage.removeItem("gauntlet-active-session");
-    localStorage.removeItem("gauntlet-current-question");
-    localStorage.removeItem("gauntlet-current-question-id");
-    localStorage.removeItem("gauntlet-stats");
-    localStorage.removeItem("gauntlet-session-progress");
-    localStorage.removeItem("gauntlet-question-start-time");
+    try {
+      console.log("Clearing gauntlet session data");
+      localStorage.removeItem("gauntlet-active-session");
+      localStorage.removeItem("gauntlet-current-question");
+      localStorage.removeItem("gauntlet-current-question-id");
+      localStorage.removeItem("gauntlet-stats");
+      localStorage.removeItem("gauntlet-session-progress");
+      localStorage.removeItem("gauntlet-question-start-time");
+      console.log("Session data cleared successfully");
+    } catch (error) {
+      console.error("Error clearing session data:", error);
+    }
   };
 
   useEffect(() => {
@@ -379,17 +385,22 @@ const GauntletPage = () => {
       setFeedback(data.feedback);
 
       if (data.isGameOver) {
-        // Handle session completion (15 questions) or failure (3 strikes)
-        if (data.sessionSummary) {
+        // Handle session completion or failure (3 strikes)
+        if (data.punishment) {
+          // Show punishment first for failed sessions
           setSessionResults({
             ...data.sessionSummary,
             completionReason: data.sessionSummary.completionReason,
-            punishment: data.punishment || null,
+            punishment: data.punishment,
+          });
+          setActivePenance(data.punishment);
+        } else if (data.sessionSummary) {
+          // Show session results directly for completed sessions
+          setSessionResults({
+            ...data.sessionSummary,
+            completionReason: data.sessionSummary.completionReason,
           });
           setIsSessionResultsOpen(true);
-        } else if (data.punishment) {
-          // Fallback for older punishment system
-          setActivePenance(data.punishment);
         } else {
           toast.error(data.feedback?.text || "Session ended!", {
             duration: 5000,
@@ -495,8 +506,17 @@ const GauntletPage = () => {
         config
       );
 
-      // Show session summary modal
-      if (data.sessionSummary) {
+      // Handle quit response - may include punishment
+      if (data.punishment) {
+        // Show punishment first for quitters who deserve it
+        setSessionResults({
+          ...data.sessionSummary,
+          completionReason: "abandoned",
+          punishment: data.punishment,
+        });
+        setActivePenance(data.punishment);
+      } else if (data.sessionSummary) {
+        // Show session results directly for clean quits
         setSessionResults({
           ...data.sessionSummary,
           completionReason: "abandoned",
@@ -534,15 +554,50 @@ const GauntletPage = () => {
   };
 
   const handleAcknowledgePenance = () => {
-    clearGauntletSession(); // Clear session data when punishment is acknowledged
-    setActivePenance(null);
-    navigate("/dashboard");
+    console.log("handleAcknowledgePenance called");
+    console.log("sessionResults:", sessionResults);
+
+    try {
+      // Close punishment modal
+      setActivePenance(null);
+      console.log("activePenance cleared");
+
+      // Always show session results - create fallback if none exist
+      if (sessionResults) {
+        console.log("Opening existing session results");
+        setIsSessionResultsOpen(true);
+      } else {
+        console.log("Creating fallback session results");
+        // Create a basic session results object for display
+        const fallbackResults = {
+          questionsCompleted: sessionProgress?.currentQuestion || 0,
+          totalQuestions: "Unlimited",
+          correctAnswers: sessionProgress?.correctAnswers || 0,
+          incorrectAnswers: sessionProgress?.incorrectAnswers || 0,
+          finalScore: stats?.score || 0,
+          totalXpGained: 0,
+          maxCorrectStreak: sessionProgress?.correctStreak || 0,
+          sessionDuration: 0,
+          completionReason: "failed",
+          highestDifficulty: 1,
+        };
+        setSessionResults(fallbackResults);
+        setIsSessionResultsOpen(true);
+      }
+    } catch (error) {
+      console.error("Error in handleAcknowledgePenance:", error);
+      // Fallback: just go to dashboard
+      clearGauntletSession();
+      navigate("/dashboard");
+    }
   };
 
   const handleCloseSessionResults = () => {
+    console.log("Closing session results and navigating to dashboard");
     clearGauntletSession(); // Clear session data when session results are closed
     setIsSessionResultsOpen(false);
     setSessionResults(null);
+    setActivePenance(null); // Ensure punishment modal is also closed
     navigate("/dashboard");
   };
 

@@ -1,5 +1,9 @@
 import dotenv from "dotenv";
-dotenv.config();
+
+// Ensure dotenv is configured
+if (!process.env.MONGODB_URI) {
+  dotenv.config();
+}
 
 const config = {
   PORT: process.env.PORT || 5000,
