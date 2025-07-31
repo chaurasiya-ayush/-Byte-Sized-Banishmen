@@ -1,5 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
@@ -8,6 +13,9 @@ import SkillTreePage from "./pages/skill-tree/SkillTreePage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import SocialPage from "./pages/SocialPage";
 import DuelGauntletPage from "./pages/DuelGauntletPage";
+import ResetPassword from "./pages/ResetPassword";
+import VerificationSuccess from "./pages/VerificationSuccess";
+import VerificationError from "./pages/VerificationError";
 import ProtectedRoute from "./components/ProtectedRoute";
 import backgroundVideo from "./assets/background.mp4";
 
@@ -100,74 +108,97 @@ function IntroVideoOverlay({ onFinish }) {
 }
 
 // ------------- APP COMPONENT -------------
-function App() {
-  const [showIntro, setShowIntro] = useState(true);
+function AppContent() {
+  const location = useLocation();
+  const [showIntro, setShowIntro] = useState(false);
 
-  // Only run on initial mount
+  // Check if we should show intro video
   useEffect(() => {
-    setShowIntro(true);
-  }, []);
+    const currentPath = location.pathname;
+    const justLoggedIn = sessionStorage.getItem("justLoggedIn") === "true";
+
+    // Show intro ONLY when user just logged in and is entering dashboard
+    if (currentPath === "/dashboard" && justLoggedIn) {
+      setShowIntro(true);
+      // Clear the flag so intro doesn't show again during this session
+      sessionStorage.removeItem("justLoggedIn");
+    }
+
+    // Clear navigation flag for subsequent page changes
+    sessionStorage.removeItem("isNavigating");
+  }, [location.pathname]);
+
+  const handleIntroFinish = () => {
+    setShowIntro(false);
+  };
 
   return (
     <>
       <Toaster position="top-center" reverseOrder={false} />
-      {showIntro && <IntroVideoOverlay onFinish={() => setShowIntro(false)} />}
-      {!showIntro && (
-        <Router>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/gauntlet"
-              element={
-                <ProtectedRoute>
-                  <GauntletPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/skill-tree"
-              element={
-                <ProtectedRoute>
-                  <SkillTreePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/leaderboard"
-              element={
-                <ProtectedRoute>
-                  <LeaderboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/friends"
-              element={
-                <ProtectedRoute>
-                  <SocialPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/duel/:duelId"
-              element={
-                <ProtectedRoute>
-                  <DuelGauntletPage />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </Router>
-      )}
+      {showIntro && <IntroVideoOverlay onFinish={handleIntroFinish} />}
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/verification-success" element={<VerificationSuccess />} />
+        <Route path="/verification-error" element={<VerificationError />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gauntlet"
+          element={
+            <ProtectedRoute>
+              <GauntletPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/skill-tree"
+          element={
+            <ProtectedRoute>
+              <SkillTreePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leaderboard"
+          element={
+            <ProtectedRoute>
+              <LeaderboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/friends"
+          element={
+            <ProtectedRoute>
+              <SocialPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/duel/:duelId"
+          element={
+            <ProtectedRoute>
+              <DuelGauntletPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 export default App;

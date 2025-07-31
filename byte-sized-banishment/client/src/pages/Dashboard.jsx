@@ -12,18 +12,20 @@ import {
   FaTrophy,
   FaTree,
   FaUsers,
+  FaPlay,
+  FaPause,
+  FaFire,
 } from "react-icons/fa";
 import { GiLevelEndFlag, GiCrown, GiFist } from "react-icons/gi";
 import GauntletSetupModal from "../components/GauntletSetupModal";
 import { useCountdown } from "../hooks/useCountdown";
 
 // --- PLACEHOLDER ASSETS ---
-const backgroundVideo = "/src/assets/";
-const logoImage = "/src/assets/logo.png";
-const themeMusic = "/src/assets/theme.mp3";
-const gauntletCardBg = "/src/assets/Dash-board-card.png";
-const devilSigil =
-  "/src/assets/wing.jpg"; 
+import backgroundVideo from "../assets/card-bg.mp4";
+import logoImage from "../assets/logo.png";
+import themeMusic from "../assets/theme-music.mp3";
+import gauntletCardBg from "../assets/Dash-board-card.png";
+import devilSigil from "../assets/wing.jpg";
 
 const fireShadow = "0 0 20px 7px #ff3b0faf, 0 0 30px 14px #a80019cc";
 
@@ -77,7 +79,6 @@ const StatsCard = ({ stats }) => {
   const xpPercentage =
     stats.xpToNextLevel > 0 ? (stats.xp / stats.xpToNextLevel) * 100 : 0;
 
-  // Animated XP RING (using SVG only for demo!)
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -85,44 +86,8 @@ const StatsCard = ({ stats }) => {
       transition={{ duration: 1, type: "spring", delay: 0.2 }}
       className="bg-gradient-to-br from-black/80 via-red-900/70 to-black/80 border-2 border-red-700/40 rounded-2xl p-6 shadow-xl shadow-red-800/30 relative overflow-hidden"
     >
-      {/* Animated glow ring */}
-      <div className="absolute right-4 top-4">
-        <svg width={56} height={56} className="rotate-[-35deg]">
-          <circle
-            cx={28}
-            cy={28}
-            r={24}
-            fill="none"
-            stroke="#1c1c1c"
-            strokeWidth="6"
-            opacity="0.5"
-          />
-          <motion.circle
-            cx={28}
-            cy={28}
-            r={24}
-            fill="none"
-            stroke="url(#fire-xp)"
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeDasharray={2 * Math.PI * 24}
-            strokeDashoffset={2 * Math.PI * 24 * (1 - xpPercentage / 100)}
-            initial={{ strokeDashoffset: 2 * Math.PI * 24 }}
-            animate={{
-              strokeDashoffset: 2 * Math.PI * 24 * (1 - xpPercentage / 100),
-            }}
-            transition={{ duration: 1.5, type: "spring" }}
-            style={{ filter: "drop-shadow(0 0 12px #f87171bb)" }}
-          />
-          <defs>
-            <linearGradient id="fire-xp" x1="0" y1="0" x2="1" y2="1">
-              <stop stopColor="#ff3b0f" />
-              <stop offset="0.6" stopColor="#fae81e" />
-              <stop offset="1" stopColor="#ff2b5e" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
+      {/* XP Icon instead of animated glow ring */}
+      <div className="absolute right-4 top-4"></div>
       <h3 className="text-lg font-extrabold text-orange-400 mb-3 tracking-wider">
         HELLFIRE XP
       </h3>
@@ -156,12 +121,12 @@ const StatsCard = ({ stats }) => {
           },
           {
             icon: <GiFist className="text-red-400" />,
-            label: "Souls Claimed",
-            value: stats.soulsClaimed,
+            label: "Sessions Won",
+            value: stats.soulsClaimed || 0,
           },
           {
             icon: <FaTachometerAlt className="text-orange-400" />,
-            label: "Streak",
+            label: "Max Session Streak",
             value: stats.devilsFavor,
           },
         ].map((item, idx) => (
@@ -327,20 +292,16 @@ const Sidebar = ({
           <span className="font-bold text-red-400">
             {weakestLink || "Nothing Yet"}
           </span>
-          .
+          . Prove him wrong.
         </p>
         <motion.button
           onClick={onStartWeaknessDrill}
           disabled={
-            isDrillLoading ||
-            !weakestLink ||
-            weakestLink.includes("Nothing Yet")
+            isDrillLoading || !weakestLink || weakestLink === "Nothing Yet"
           }
           whileHover={{
             scale:
-              !isDrillLoading &&
-              weakestLink &&
-              !weakestLink.includes("Nothing Yet")
+              !isDrillLoading && weakestLink && weakestLink !== "Nothing Yet"
                 ? 1.05
                 : 1,
             boxShadow: fireShadow,
@@ -392,6 +353,33 @@ const ActiveEffectPanel = ({ effect }) => {
   );
 };
 
+const AudioControls = ({ isPlaying, onTogglePlay }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay: 1 }}
+    className="fixed bottom-4 right-4 z-50 bg-black/80 backdrop-blur-sm border border-red-700/30 rounded-xl p-3 flex items-center gap-3"
+  >
+    <motion.button
+      onClick={onTogglePlay}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.95 }}
+      className="bg-red-700/20 hover:bg-red-600/30 border border-red-500/40 text-red-400 hover:text-red-300 p-2 rounded-lg transition-all duration-200"
+      title={isPlaying ? "Pause Music" : "Play Music"}
+    >
+      {isPlaying ? (
+        <FaPause className="text-sm" />
+      ) : (
+        <FaPlay className="text-sm" />
+      )}
+    </motion.button>
+
+    <div className="flex items-center px-2 text-xs text-red-400/60 font-mono">
+      DEVIL'S SYMPHONY
+    </div>
+  </motion.div>
+);
+
 const Dashboard = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -401,6 +389,11 @@ const Dashboard = () => {
   const [error, setError] = useState("");
   const audioRef = useRef(null);
   const [showGauntletModal, setShowGauntletModal] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(() => {
+    // Load play preference from localStorage
+    const savedPlaying = localStorage.getItem("audioPlaying");
+    return savedPlaying === "true";
+  });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -426,14 +419,183 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = 0.06;
-      audioRef.current.play().catch((e) => {});
+      const audio = audioRef.current;
+      audio.volume = 0.06;
+
+      // Don't autoplay - let user control playback
+      const setupAudio = () => {
+        // Add event listeners
+        const handleLoadedData = () => {
+          console.log("Theme music loaded successfully");
+
+          // Sync UI state with actual audio state on load
+          const actuallyPlaying = !audio.paused;
+          if (isPlaying !== actuallyPlaying) {
+            setIsPlaying(actuallyPlaying);
+            localStorage.setItem("audioPlaying", actuallyPlaying.toString());
+          }
+
+          // If user previously had it playing and audio isn't playing, try to start it
+          if (isPlaying && audio.paused) {
+            audio.play().catch((error) => {
+              console.log("Audio autoplay blocked by browser:", error);
+              setIsPlaying(false); // Reset state if autoplay fails
+              localStorage.setItem("audioPlaying", "false");
+            });
+          }
+        };
+
+        const handleError = (e) => {
+          console.error("Audio loading error:", e);
+          setIsPlaying(false);
+          localStorage.setItem("audioPlaying", "false");
+        };
+
+        const handlePlay = () => {
+          setIsPlaying(true);
+          localStorage.setItem("audioPlaying", "true");
+        };
+
+        const handlePause = () => {
+          setIsPlaying(false);
+          localStorage.setItem("audioPlaying", "false");
+        };
+
+        const handleEnded = () => {
+          setIsPlaying(false);
+          localStorage.setItem("audioPlaying", "false");
+        };
+
+        audio.addEventListener("loadeddata", handleLoadedData);
+        audio.addEventListener("error", handleError);
+        audio.addEventListener("play", handlePlay);
+        audio.addEventListener("pause", handlePause);
+        audio.addEventListener("ended", handleEnded);
+
+        // Check initial state immediately if audio is already loaded
+        if (audio.readyState >= 2) {
+          // HAVE_CURRENT_DATA or higher
+          handleLoadedData();
+        }
+
+        // Cleanup function
+        return () => {
+          audio.removeEventListener("loadeddata", handleLoadedData);
+          audio.removeEventListener("error", handleError);
+          audio.removeEventListener("play", handlePlay);
+          audio.removeEventListener("pause", handlePause);
+          audio.removeEventListener("ended", handleEnded);
+        };
+      };
+
+      const cleanup = setupAudio();
+      return cleanup;
     }
+  }, []); // Only run once when component mounts
+
+  // Handle page visibility changes - pause when user leaves the page
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (audioRef.current) {
+        if (document.hidden) {
+          // Page is hidden - pause audio and save the playing state
+          if (!audioRef.current.paused) {
+            audioRef.current.pause();
+            localStorage.setItem("audioWasPlayingBeforeHidden", "true");
+          } else {
+            localStorage.setItem("audioWasPlayingBeforeHidden", "false");
+          }
+        } else {
+          const wasPlaying =
+            localStorage.getItem("audioWasPlayingBeforeHidden") === "true";
+          if (wasPlaying && isPlaying) {
+            audioRef.current.play().catch((error) => {
+              console.error("Error resuming audio:", error);
+              setIsPlaying(false);
+            });
+          }
+          localStorage.removeItem("audioWasPlayingBeforeHidden");
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isPlaying]);
+
+  // Cleanup audio when component unmounts (user navigates away)
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
   }, []);
+
+  // Additional state sync check after component mounts
+  useEffect(() => {
+    const syncAudioState = () => {
+      if (audioRef.current) {
+        const actuallyPlaying = !audioRef.current.paused;
+        if (isPlaying !== actuallyPlaying) {
+          console.log(
+            `Syncing audio state: UI shows ${isPlaying}, actual is ${actuallyPlaying}`
+          );
+          setIsPlaying(actuallyPlaying);
+          localStorage.setItem("audioPlaying", actuallyPlaying.toString());
+        }
+      }
+    };
+
+    // Check state after a short delay to ensure audio element is ready
+    const timeoutId = setTimeout(syncAudioState, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [isPlaying]);
 
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      const audio = audioRef.current;
+
+      // Check if audio state matches UI state and correct if needed
+      if (isPlaying && audio.paused) {
+        // UI thinks it's playing but audio is paused - fix the state
+        setIsPlaying(false);
+        localStorage.setItem("audioPlaying", "false");
+        return;
+      }
+
+      if (isPlaying) {
+        // Pause the audio
+        audio.pause();
+        setIsPlaying(false);
+        localStorage.setItem("audioPlaying", "false");
+        console.log("Devil's Symphony paused");
+      } else {
+        // Play the audio
+        audio
+          .play()
+          .then(() => {
+            setIsPlaying(true);
+            localStorage.setItem("audioPlaying", "true");
+            console.log("Devil's Symphony playing");
+          })
+          .catch((error) => {
+            console.error("Error playing audio:", error);
+            setIsPlaying(false);
+            localStorage.setItem("audioPlaying", "false");
+          });
+      }
+    }
   };
 
   const handleStartWeaknessDrill = async () => {
@@ -507,7 +669,11 @@ const Dashboard = () => {
       >
         <source src={backgroundVideo} type="video/mp4" />
       </video>
-      <audio ref={audioRef} src={themeMusic} loop />
+      <audio ref={audioRef} src={themeMusic} loop preload="auto" />
+
+      {/* Audio Controls */}
+      <AudioControls isPlaying={isPlaying} onTogglePlay={togglePlay} />
+
       <AnimatePresence>
         {showGauntletModal && (
           <GauntletSetupModal

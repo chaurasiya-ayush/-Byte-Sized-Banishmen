@@ -3,58 +3,101 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import AuthModal from "../components/AuthModal";
+import { FaFire, FaSkull, FaBolt } from "react-icons/fa";
+import { GiDevilMask } from "react-icons/gi";
 
-// Placeholder team data
+// Coding syntax symbols as particles
+const PARTICLES = [
+  "{ }",
+  "===",
+  "( )",
+  "[ ]",
+  "< />",
+  "!==",
+  "=>",
+  "&&",
+  "||",
+  "++",
+  "--",
+  "/**/",
+  "//",
+  "${}",
+  "#",
+  ".",
+  ":",
+  ";",
+];
+// Team data
 const TEAM_MEMBERS = [
   {
-    name: "Lucifer 'Luke' Inferno",
-    role: "Lead Fiend & Frontend Conjurer",
-    img: "/team/dp1.png", // Placeholder path, replace later
-    bio: "Brings the pixel-sorcery and devilishly good UI magic.",
+    name: "Ayush 'Leader' Inferno",
+    role: "Frontend Developer & UI Architect",
+    img: "/team/dp1.png",
+    bio: "Crafts stunning user interfaces and brings pixel-perfect frontend magic to life.",
   },
   {
-    name: "Lilith DeBug",
-    role: "Backend Demoness",
-    img: "/team/dp2.png",
-    bio: "Turns database nightmares into functional hellscapes.",
-  },
-  {
-    name: "Moloch Syntax",
-    role: "AI Quizmaster Architect",
-    img: "/team/dp3.png",
-    bio: "Built the gauntlet's mind-bending question engine.",
-  },
-  {
-    name: "Asmodeus DevOps",
-    role: "Chaos of Deployments",
+    name: "Naina DevOps",
+    role: "Content Provider & Business Logic",
     img: "/team/dp4.png",
-    bio: "Ensures the flames of production keep burning bright.",
+    bio: "Drives business logic, content strategy, and provides essential support to keep everything running.",
+  },
+  {
+    name: "Arya Syntax",
+    role: "Android Developer",
+    img: "/team/dp3.png",
+    bio: "Masters mobile development and creates seamless Android experiences.",
+  },
+  {
+    name: "Rahul DeBug",
+    role: "Backend & Full Stack Dominator",
+    img: "/team/dp2.png",
+    bio: "Core logic builder who dominates the backend and orchestrates the entire full stack architecture.",
   },
 ];
+
+// ...TEAM_MEMBERS as before...
 
 const heroVariants = {
   hidden: { opacity: 0, y: 30 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { type: "spring", stiffness: 80, damping: 14, delay: 0.4 },
+    transition: { type: "spring", stiffness: 90, damping: 13, delay: 0.4 },
   },
 };
+// ...subtitleVariants as before...
+// Animate the subtitle nicely
 const subtitleVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: (i) => ({
+  visible: (i = 0) => ({
     opacity: 1,
     y: 0,
     transition: { delay: 0.7 + i * 0.1, duration: 0.7 },
   }),
 };
 
+// Optimized Particle Animations with fewer particles for better performance
+const makeParticles = () =>
+  Array.from({ length: 8 }).map((_, i) => ({
+    id: i,
+    symbol: PARTICLES[i % PARTICLES.length],
+    x: Math.random() * 80 + 10 + "%", // Keep particles more centered
+    delay: Math.random() * 5,
+    fontSize: Math.random() * 6 + 18, // Smaller range for consistency
+    color: ["#dc2626", "#f97316", "#eab308", "#0ea5e9"][
+      Math.floor(Math.random() * 4)
+    ], // Fewer colors for better performance
+  }));
+
 const LandingPage = () => {
   const [showModal, setShowModal] = useState(false);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  const handleGetStartedClick = () => {
+  const particles = makeParticles();
+
+  const handleGetStartedClick = (e) => {
+    e.preventDefault(); // Prevent any default behavior that might cause refresh
     if (currentUser) {
       navigate("/dashboard");
     } else {
@@ -63,22 +106,51 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-950 via-black to-red-900 min-h-screen text-white flex flex-col items-center justify-center p-0 relative overflow-hidden">
-      {/* BG Glows */}
-      <motion.div
-        className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-red-900 rounded-full opacity-25 blur-3xl z-0 pointer-events-none"
-        animate={{ scale: [1, 1.1, 0.9, 1] }}
-        transition={{ repeat: Infinity, duration: 7, ease: "easeInOut" }}
-        style={{ boxShadow: "0 0 90px 50px #7f1d1d44" }}
-      />
-      <motion.div
-        className="absolute -top-40 -right-40 w-[530px] h-[500px] bg-red-800 rounded-full opacity-30 blur-3xl z-0 pointer-events-none"
-        animate={{ scale: [1, 0.93, 1.05, 1] }}
-        transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
-        style={{ boxShadow: "0 0 150px 60px #991b1b33" }}
+    <div className="bg-gradient-to-br from-gray-950 to-red-900 min-h-screen text-white flex flex-col items-center justify-center p-0 relative overflow-hidden">
+      {/* BACKGROUND OVERLAY - Simplified */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-30"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 80%, rgba(124,25,25,0.4), transparent 70%)",
+          zIndex: 1,
+        }}
       />
 
-      {/* Hero */}
+      {/* SIMPLIFIED HERO GLOWS - Reduced complexity */}
+      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-red-800/20 rounded-full blur-3xl z-0 pointer-events-none" />
+      <div className="absolute -top-32 -right-32 w-80 h-80 bg-red-700/15 rounded-full blur-2xl z-0 pointer-events-none" />
+
+      {/* OPTIMIZED: Coding Syntax Floating Particles */}
+      {particles.map((p, idx) => (
+        <motion.div
+          key={p.id}
+          className="absolute z-10 opacity-70 font-mono font-bold select-none pointer-events-none"
+          style={{
+            left: p.x,
+            bottom: "-40px",
+            fontSize: `${p.fontSize}px`,
+            color: p.color,
+            textShadow: `0 0 10px ${p.color}aa`,
+          }}
+          initial={{ y: 0, opacity: 0.4, scale: 0.9 }}
+          animate={{
+            y: [-5, -200 - idx * 12],
+            opacity: [0.3, 0.7, 0],
+            scale: [0.9, 1.1, 1],
+          }}
+          transition={{
+            repeat: Infinity,
+            delay: p.delay,
+            duration: 5 + idx * 0.2,
+            ease: "linear",
+          }}
+        >
+          {p.symbol}
+        </motion.div>
+      ))}
+
+      {/* HERO: Title, Subtitle, Button - Performance Optimized */}
       <motion.section
         initial="hidden"
         animate="visible"
@@ -86,24 +158,22 @@ const LandingPage = () => {
         className="mt-24 mb-12 z-10 text-center"
       >
         <motion.h1
-          className="text-5xl md:text-7xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-red-600 relative inline-block drop-shadow-2xl"
+          className="text-5xl md:text-7xl font-black mb-6 text-red-400 relative inline-block"
           style={{
-            fontFamily:
-              "'Orbitron', 'Exo 2', 'Rajdhani', 'Bebas Neue', monospace",
-            textShadow:
-              "0 0 20px #dc2626aa, 0 0 40px #dc2626aa, 0 0 60px #dc262655",
+            fontFamily: "'Orbitron', 'Bebas Neue', monospace",
+            textShadow: "0 0 20px #dc2626aa",
             letterSpacing: "0.05em",
           }}
         >
           BYTE-SIZED
           <br />
           <span
-            className="text-yellow-400 drop-shadow-2xl"
-            style={{ textShadow: "0 0 20px #fbbf24aa, 0 0 40px #fbbf24aa" }}
+            className="text-yellow-400"
+            style={{ textShadow: "0 2px 16px #fbbf24aa" }}
           >
             BANISHMENT
           </span>
-          <span className="ml-3 text-4xl md:text-6xl animate-pulse">🔥</span>
+          {/* Simplified animated overlay */}
         </motion.h1>
         <motion.p
           custom={0}
@@ -112,12 +182,15 @@ const LandingPage = () => {
           style={{
             fontFamily: "'Rajdhani', 'Exo 2', sans-serif",
             fontWeight: "500",
-            textShadow: "0 2px 4px rgba(0,0,0,0.8)",
+            textShadow: "0 2px 6px rgba(0,0,0,0.8)",
           }}
         >
           <span
             className="text-red-400 font-bold text-2xl md:text-3xl block mb-2"
-            style={{ fontFamily: "'Orbitron', monospace" }}
+            style={{
+              fontFamily: "'Orbitron', monospace",
+              letterSpacing: "0.09em",
+            }}
           >
             FACE THE DEVIL'S GAUNTLET
           </span>
@@ -125,83 +198,108 @@ const LandingPage = () => {
           <span className="text-orange-400 font-bold">intense pressure</span>.
           <br />
           Survive the{" "}
-          <span className="text-red-400 font-bold">trial by fire</span> and
+          <span className="text-red-500 font-bold">trial by fire</span> and
           claim your place among the elite.
           <br />
           <span
-            className="font-black text-white text-xl md:text-2xl mt-3 block animate-pulse"
+            className="font-black text-white text-xl md:text-2xl mt-3 flex items-center justify-center gap-3"
             style={{
               fontFamily: "'Bebas Neue', cursive",
               letterSpacing: "0.1em",
             }}
           >
-            ⚡ YOUR CODING DESTINY AWAITS ⚡
+            <FaBolt className="text-yellow-400" />
+            YOUR CODING DESTINY AWAITS
+            <FaBolt className="text-yellow-400" />
           </span>
         </motion.p>
-
         <motion.button
           whileHover={{
             scale: 1.05,
             backgroundColor: "#dc2626",
             color: "#fff",
-            boxShadow: "0 0 30px 10px #dc262680, 0 0 60px 20px #dc262640",
           }}
           whileTap={{ scale: 0.98 }}
-          transition={{ type: "spring", stiffness: 250, damping: 10 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
           onClick={handleGetStartedClick}
-          className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-black font-black py-5 px-12 rounded-full text-xl md:text-2xl hover:from-red-500 hover:to-yellow-400 transition-all duration-300 shadow-2xl shadow-red-500/50 border-4 border-yellow-400/20 hover:border-white/40"
+          className="relative shadow-xl border-3 border-yellow-400/30 hover:border-yellow-200 bg-gradient-to-r from-yellow-500 to-red-500 text-black font-black py-5 px-12 rounded-full text-xl md:text-2xl group"
           style={{
             fontFamily: "'Orbitron', 'Bebas Neue', monospace",
-            letterSpacing: "0.1em",
-            textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+            letterSpacing: "0.11em",
+            textShadow: "0 2px 8px rgba(0,0,0,0.6)",
           }}
         >
-          {currentUser ? "🔥 ENTER THE GAUNTLET 🔥" : "💀 BEGIN YOUR TRIAL 💀"}
+          {currentUser ? (
+            <>
+              <FaFire className="inline mr-2" />
+              ENTER THE GAUNTLET
+              <FaFire className="inline ml-2" />
+            </>
+          ) : (
+            <>
+              <FaSkull className="inline mr-2" />
+              BEGIN YOUR TRIAL
+              <FaSkull className="inline ml-2" />
+            </>
+          )}
+          {/* Simplified devil tail */}
         </motion.button>
       </motion.section>
 
-      {/* About Section */}
+      {/* ABOUT/TEAM SECTION: Optimized for Performance */}
       <motion.section
         initial={{ opacity: 0, y: 60 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-        className="backdrop-blur-lg bg-gradient-to-br from-black/60 via-red-900/30 to-transparent rounded-2xl shadow-2xl shadow-black/60 p-8 md:p-12 z-20 w-full md:w-5/6 max-w-5xl mt-8"
+        transition={{ duration: 0.7, delay: 0.15 }}
+        className="bg-black/60 border border-red-800/40 rounded-2xl shadow-2xl p-8 md:p-12 z-20 w-full md:w-5/6 max-w-5xl mt-8"
+        style={{
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+        }}
       >
         <h2
-          className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 mb-6 flex items-center gap-3"
+          className="text-4xl md:text-5xl font-black text-red-400 mb-7 flex items-center gap-3"
           style={{
-            fontFamily: "'Orbitron', 'Bebas Neue', monospace",
+            fontFamily: "'Orbitron', 'Rajdhani', monospace",
             letterSpacing: "0.05em",
-            textShadow: "0 0 20px #dc2626aa",
+            textShadow: "0 0 12px #dc2626aa",
           }}
         >
-          <span aria-label="demon" className="text-5xl animate-bounce">
-            😈
-          </span>
+          <motion.span
+            aria-label="demon"
+            className="text-5xl text-red-500"
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <GiDevilMask />
+          </motion.span>
           MEET THE DEVIL'S CODERS
-          <span aria-label="fire" className="text-4xl animate-pulse">
-            🔥
-          </span>
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-5">
           {TEAM_MEMBERS.map((member, idx) => (
             <motion.div
               key={idx}
-              initial={{ opacity: 0, y: 38 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.14, type: "spring", stiffness: 180 }}
-              className="rounded-xl p-4 bg-black/60 border border-red-800 flex items-center gap-5 shadow-lg cursor-pointer"
+              transition={{
+                delay: idx * 0.1,
+                duration: 0.5,
+                type: "tween",
+                ease: "easeOut",
+              }}
+              whileHover={{
+                scale: 1.02,
+                transition: { duration: 0.2, ease: "easeOut" },
+              }}
+              className="relative rounded-xl p-5 bg-gradient-to-br from-gray-900 to-red-900/40 border-2 border-red-700/60 hover:border-yellow-400/60 flex items-center gap-5 shadow-lg cursor-pointer group transition-colors duration-300"
             >
-              {/* Image placeholder (swap src later) */}
-              <div className="w-20 h-20 bg-gradient-to-br from-red-800 to-black rounded-full flex-shrink-0 overflow-hidden border-4 border-red-700 shadow-md flex items-center justify-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-red-700 to-gray-900 rounded-full flex-shrink-0 overflow-hidden border-3 border-red-600 shadow-lg flex items-center justify-center">
                 <img
                   src={member.img}
                   alt={member.name}
-                  className="object-cover w-full h-full"
-                  style={{ filter: "grayscale(10%) contrast(1.16)" }}
-                  // Show fallback demon emoji if no dp available
+                  className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src =
@@ -211,20 +309,24 @@ const LandingPage = () => {
               </div>
               <div>
                 <h3
-                  className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-300 to-orange-300 flex items-center gap-2"
+                  className="text-xl md:text-2xl font-bold text-yellow-300 flex items-center gap-2 group-hover:text-yellow-200 transition-colors duration-300"
                   style={{
                     fontFamily: "'Rajdhani', 'Exo 2', sans-serif",
                     letterSpacing: "0.05em",
+                    textShadow: "0 0 8px #d97706aa",
                   }}
                 >
                   {member.name}
-                  <span className="text-lg animate-pulse">🔥</span>
+                  <span className="text-lg text-orange-400">
+                    <FaFire />
+                  </span>
                 </h3>
                 <p
-                  className="font-bold text-yellow-400 mb-1"
+                  className="font-bold text-red-300 mb-1"
                   style={{
                     fontFamily: "'Orbitron', monospace",
                     fontSize: "0.9rem",
+                    letterSpacing: "0.04em",
                   }}
                 >
                   {member.role}
@@ -240,6 +342,16 @@ const LandingPage = () => {
           ))}
         </div>
       </motion.section>
+
+      {/* OPTIMIZED FOOTER - Simplified */}
+      <div
+        className="absolute left-0 bottom-0 w-full h-6 pointer-events-none z-30 opacity-80"
+        style={{
+          background:
+            "linear-gradient(90deg, #330000 30%, #dc2626 60%, #fbbf24 90%)",
+          filter: "blur(4px)",
+        }}
+      />
 
       {/* Auth Modal */}
       <AnimatePresence>

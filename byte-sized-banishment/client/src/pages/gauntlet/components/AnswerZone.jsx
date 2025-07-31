@@ -1,7 +1,7 @@
 import React from "react";
 import MCQComponent from "./MCQComponent";
 import IntegerComponent from "./IntegerComponent";
-import CodeEditorComponent from "./CodeEditorComponent"; 
+import CodeEditorComponent from "./CodeEditorComponent";
 
 const AnswerZone = ({ question, userAnswer, setUserAnswer }) => {
   switch (question.type) {
@@ -23,6 +23,7 @@ const AnswerZone = ({ question, userAnswer, setUserAnswer }) => {
           language={question.subject}
           value={userAnswer}
           onCodeChange={setUserAnswer}
+          question={question}
         />
       );
     default:

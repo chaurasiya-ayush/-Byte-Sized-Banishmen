@@ -59,7 +59,7 @@ export const getDashboardData = async (req, res) => {
         xpToNextLevel: user.xpToNextLevel,
         rank: user.rank,
         soulsClaimed: user.correctAnswers,
-        devilsFavor: user.dailyStreak,
+        devilsFavor: user.maxSessionStreak, // Changed to show max session streak
         activeEffect: user.activeEffect,
       },
       weakestLink: weakestLink, // <-- SEND REAL DATA

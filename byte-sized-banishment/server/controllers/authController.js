@@ -1,9 +1,17 @@
 import User from "../models/userModel.js";
 import Token from "../models/tokenModel.js";
+import PasswordResetToken from "../models/passwordResetTokenModel.js";
 import sendEmail from "../utils/sendEmail.js";
+import {
+  getPasswordResetEmailTemplate,
+  getPasswordResetConfirmationTemplate,
+  getRegistrationVerificationTemplate,
+  getEmailVerificationConfirmationTemplate,
+} from "../utils/emailTemplates.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import config from "../config/index.js";
+import bcrypt from "bcryptjs";
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -39,9 +47,16 @@ export const register = async (req, res) => {
     }).save();
 
     const verificationUrl = `${config.BASE_URL}/api/auth/verify/${user.id}/${verificationToken}`;
-    const message = `<h1>Welcome to Byte-Sized Banishment!</h1><p>Please verify your email by clicking the link below:</p><a href="${verificationUrl}" target="_blank">Verify Your Email</a>`;
+    const emailTemplate = getRegistrationVerificationTemplate(
+      verificationUrl,
+      user.email
+    );
 
-    await sendEmail(user.email, "Email Verification", message);
+    await sendEmail(
+      user.email,
+      "Welcome to Byte-Sized Banishment - Verify Your Email",
+      emailTemplate
+    );
 
     res.status(201).json({
       message:
@@ -60,27 +75,66 @@ export const verifyEmail = async (req, res) => {
   try {
     // 1. Find user by ID
     const user = await User.findById(req.params.userId);
-    if (!user) return res.status(400).send("Invalid link: User not found.");
+    if (!user) {
+      return res.redirect(
+        `${
+          config.CLIENT_URL || "http://localhost:5173"
+        }/verification-error?error=user-not-found`
+      );
+    }
+
+    // Check if user is already verified
+    if (user.isVerified) {
+      return res.redirect(
+        `${
+          config.CLIENT_URL || "http://localhost:5173"
+        }/verification-error?error=already-verified`
+      );
+    }
 
     // 2. Find token for this user
     const token = await Token.findOne({
       userId: user._id,
       token: req.params.token,
     });
-    if (!token) return res.status(400).send("Invalid or expired link.");
+    if (!token) {
+      return res.redirect(
+        `${
+          config.CLIENT_URL || "http://localhost:5173"
+        }/verification-error?error=invalid-token`
+      );
+    }
 
     // 3. Verify user and delete token
     await User.updateOne({ _id: user._id }, { isVerified: true });
     await Token.findByIdAndDelete(token._id);
 
-    res
-      .status(200)
-      .send(
-        "<h1>Email Verified Successfully</h1><p>You can now log in to your account.</p>"
+    // Send welcome confirmation email
+    try {
+      const welcomeTemplate = getEmailVerificationConfirmationTemplate(
+        user.email
       );
+      await sendEmail(
+        user.email,
+        "Welcome to Byte-Sized Banishment - Let's Code!",
+        welcomeTemplate
+      );
+    } catch (emailError) {
+      console.error("Failed to send welcome email:", emailError);
+      // Don't fail the verification if email sending fails
+    }
+
+    // Redirect to success page
+    res.redirect(
+      `${config.CLIENT_URL || "http://localhost:5173"}/verification-success`
+    );
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Server Error");
+    console.error("Email verification error:", error);
+    res.redirect(
+      `${
+        config.CLIENT_URL || "http://localhost:5173"
+      }/verification-error?error=server-error`
+    );
   }
 };
 
@@ -137,5 +191,188 @@ export const login = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
+  }
+};
+// Add these functions to the end of authController.js
+
+// @desc    Send password reset email
+// @route   POST /api/auth/forgot-password
+// @access  Public
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "No account found with this email address",
+      });
+    }
+
+    // Check if user is verified
+    if (!user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Please verify your email address first",
+      });
+    }
+
+    // Delete any existing password reset tokens for this user
+    await PasswordResetToken.deleteMany({ userId: user._id });
+
+    // Generate a secure reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    // Create new password reset token
+    const passwordResetToken = new PasswordResetToken({
+      userId: user._id,
+      token: resetToken,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+    });
+
+    await passwordResetToken.save();
+
+    // Create reset URL
+    const resetUrl = `${config.CLIENT_URL}/reset-password/${resetToken}`;
+
+    // Send email with reset link
+    const emailTemplate = getPasswordResetEmailTemplate(resetUrl, email);
+    await sendEmail(
+      email,
+      "🔑 Password Reset - Byte-Sized Banishment",
+      emailTemplate
+    );
+
+    res.json({
+      success: true,
+      message: "Password reset email sent successfully",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to send password reset email",
+    });
+  }
+};
+
+// @desc    Verify password reset token
+// @route   GET /api/auth/verify-reset-token/:token
+// @access  Public
+export const verifyResetToken = async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    // Find the password reset token
+    const resetToken = await PasswordResetToken.findOne({
+      token,
+      used: false,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!resetToken) {
+      return res.json({
+        valid: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    // Check if user still exists
+    const user = await User.findById(resetToken.userId);
+    if (!user) {
+      return res.json({
+        valid: false,
+        message: "User account no longer exists",
+      });
+    }
+
+    res.json({
+      valid: true,
+      message: "Reset token is valid",
+    });
+  } catch (error) {
+    console.error("Verify reset token error:", error);
+    res.json({
+      valid: false,
+      message: "Invalid or expired reset token",
+    });
+  }
+};
+
+// @desc    Reset password
+// @route   POST /api/auth/reset-password
+// @access  Public
+export const resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+
+  try {
+    // Validate password
+    if (!password || password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters long",
+      });
+    }
+
+    // Find the password reset token
+    const resetToken = await PasswordResetToken.findOne({
+      token,
+      used: false,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!resetToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    // Find the user
+    const user = await User.findById(resetToken.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User account no longer exists",
+      });
+    }
+
+    // Hash the new password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Update user's password
+    user.password = hashedPassword;
+    await user.save();
+
+    // Mark the reset token as used
+    resetToken.used = true;
+    await resetToken.save();
+
+    // Delete all password reset tokens for this user
+    await PasswordResetToken.deleteMany({ userId: user._id });
+
+    // Send confirmation email
+    const confirmationTemplate = getPasswordResetConfirmationTemplate(
+      user.email
+    );
+    await sendEmail(
+      user.email,
+      "✅ Password Reset Successful - Byte-Sized Banishment",
+      confirmationTemplate
+    );
+
+    res.json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to reset password",
+    });
   }
 };

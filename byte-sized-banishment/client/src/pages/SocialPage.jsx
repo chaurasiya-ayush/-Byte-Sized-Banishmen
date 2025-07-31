@@ -1,6 +1,23 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { FaUserPlus, FaUsers, FaBell, FaFistRaised } from "react-icons/fa";
+import {
+  FaUserPlus,
+  FaUsers,
+  FaBell,
+  FaFistRaised,
+  FaUser,
+  FaFire,
+  FaTrophy,
+  FaSkull,
+  FaBook,
+  FaGamepad,
+  FaSearch,
+  FaInbox,
+  FaUserMinus,
+  FaBalanceScale,
+  FaClock,
+} from "react-icons/fa";
+import { GiDevilMask } from "react-icons/gi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import ChallengeModal from "../components/ChallengeModal";
@@ -10,28 +27,45 @@ import { useAuth } from "../context/AuthContext";
 
 const UserCard = ({ user, onAction, actionText, isFriend, actionIcon }) => (
   <motion.div
-    className="flex items-center bg-gray-800/50 p-4 rounded-lg border border-gray-700"
+    className="flex items-center bg-gradient-to-r from-gray-900/80 to-red-900/40 p-4 rounded-xl border-2 border-gray-600 hover:border-orange-500/50 shadow-lg"
     initial={{ opacity: 0, x: -20 }}
     animate={{ opacity: 1, x: 0 }}
-    transition={{ type: "spring" }}
+    transition={{ duration: 0.4 }}
+    whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
   >
     <div className="flex-grow">
-      <p className="font-bold text-white">{user.username}</p>
-      <p className="text-sm text-gray-400">
-        Level {user.level} - {user.rank}
+      <p
+        className="font-bold text-orange-200 text-lg flex items-center gap-2"
+        style={{ fontFamily: "Rajdhani, sans-serif" }}
+      >
+        <FaUser className="text-orange-400" />
+        {user.username}
+      </p>
+      <p
+        className="text-sm text-orange-300 flex items-center gap-2"
+        style={{ fontFamily: "Rajdhani, sans-serif" }}
+      >
+        <FaFire className="text-orange-400" />
+        Level {user.level} - {user.rank || "Apprentice"}
       </p>
     </div>
     {onAction && (
-      <button
+      <motion.button
         onClick={() => onAction(user)}
-        className={`font-semibold py-2 px-4 rounded-md text-sm transition-colors flex items-center gap-2 ${
-          isFriend
-            ? "bg-red-600 hover:bg-red-500"
-            : "bg-blue-600 hover:bg-blue-500"
+        disabled={actionText === "Sent"}
+        className={`font-semibold py-2 px-4 rounded-lg text-sm transition-all duration-300 flex items-center gap-2 shadow-md ${
+          actionText === "Sent"
+            ? "bg-gray-600 cursor-not-allowed opacity-50"
+            : isFriend
+            ? "bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white"
+            : "bg-gradient-to-r from-orange-600 to-yellow-600 hover:from-orange-700 hover:to-yellow-700 text-black font-bold"
         }`}
+        style={{ fontFamily: "Rajdhani, sans-serif" }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
       >
         {actionIcon} {actionText}
-      </button>
+      </motion.button>
     )}
   </motion.div>
 );
@@ -39,21 +73,41 @@ const UserCard = ({ user, onAction, actionText, isFriend, actionIcon }) => (
 const FriendsList = ({ friends, onChallenge }) => {
   if (friends.length === 0)
     return (
-      <p className="text-gray-500 text-center mt-8">
-        You haven't bound any souls... yet.
-      </p>
+      <motion.div
+        className="text-center mt-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <p
+          className="text-orange-400 text-lg flex items-center justify-center gap-2"
+          style={{ fontFamily: "Rajdhani, sans-serif" }}
+        >
+          <GiDevilMask />
+          You haven't bound any souls... yet.
+          <GiDevilMask />
+        </p>
+        <p className="text-red-300 text-sm mt-2">
+          Find some challengers to forge unholy alliances!
+        </p>
+      </motion.div>
     );
   return (
-    <div className="space-y-3">
-      {friends.map((friend) => (
-        <UserCard
+    <div className="space-y-4">
+      {friends.map((friend, index) => (
+        <motion.div
           key={friend._id}
-          user={friend}
-          onAction={onChallenge}
-          actionText="Challenge"
-          isFriend={true}
-          actionIcon={<FaFistRaised />}
-        />
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1, duration: 0.4 }}
+        >
+          <UserCard
+            user={friend}
+            onAction={onChallenge}
+            actionText="Challenge"
+            isFriend={true}
+            actionIcon={<FaFistRaised />}
+          />
+        </motion.div>
       ))}
     </div>
   );
@@ -62,14 +116,28 @@ const FriendsList = ({ friends, onChallenge }) => {
 const DuelsList = ({ duels, currentUserId, onPlay }) => {
   if (duels.length === 0)
     return (
-      <p className="text-gray-500 text-center mt-8">
-        No active duels. Challenge a friend!
-      </p>
+      <motion.div
+        className="text-center mt-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <p
+          className="text-orange-400 text-lg flex items-center justify-center gap-2"
+          style={{ fontFamily: "Rajdhani, sans-serif" }}
+        >
+          <FaFistRaised className="text-orange-400" />
+          No active duels. Challenge a friend!
+          <FaFistRaised className="text-orange-400" />
+        </p>
+        <p className="text-red-300 text-sm mt-2">
+          The arena awaits your battles...
+        </p>
+      </motion.div>
     );
 
   return (
-    <div className="space-y-3">
-      {duels.map((duel) => {
+    <div className="space-y-4">
+      {duels.map((duel, index) => {
         const isMyTurn =
           (duel.challenger._id === currentUserId &&
             duel.status === "pending_challenger") ||
@@ -90,37 +158,83 @@ const DuelsList = ({ duels, currentUserId, onPlay }) => {
               : "Defeat";
           statusColor =
             duel.winner === currentUserId
-              ? "text-green-400"
-              : duel.winner === null
               ? "text-yellow-400"
+              : duel.winner === null
+              ? "text-orange-400"
               : "text-red-400";
         } else if (isMyTurn) {
           statusText = "Your Turn!";
-          statusColor = "text-blue-400 animate-pulse";
+          statusColor = "text-orange-400 animate-pulse";
         } else {
           statusText = `Waiting for ${opponent.username}`;
-          statusColor = "text-gray-500";
+          statusColor = "text-gray-400";
         }
 
         return (
           <motion.div
             key={duel._id}
-            className="flex items-center bg-gray-800/50 p-4 rounded-lg border border-gray-700"
+            className="flex items-center bg-gradient-to-r from-gray-900/80 to-red-900/40 p-5 rounded-xl border-2 border-gray-600 hover:border-orange-500/50 shadow-lg"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.1, duration: 0.4 }}
+            whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
           >
             <div className="flex-grow">
-              <p className="font-bold text-white">
+              <p
+                className="font-bold text-orange-200 text-lg flex items-center gap-2"
+                style={{ fontFamily: "Rajdhani, sans-serif" }}
+              >
+                <FaFistRaised className="text-orange-400" />
                 Duel vs. {opponent.username}
               </p>
-              <p className="text-sm text-gray-400">Subject: {duel.subject}</p>
-              <p className={`text-sm font-bold ${statusColor}`}>{statusText}</p>
+              <p
+                className="text-sm text-orange-300 flex items-center gap-1"
+                style={{ fontFamily: "Rajdhani, sans-serif" }}
+              >
+                <FaBook className="text-orange-400" />
+                Subject: {duel.subject}
+              </p>
+              <p
+                className={`text-sm font-bold ${statusColor} flex items-center gap-1`}
+                style={{ fontFamily: "Rajdhani, sans-serif" }}
+              >
+                {duel.status === "complete" ? (
+                  duel.winner === currentUserId ? (
+                    <>
+                      <FaTrophy className="text-yellow-400" /> {statusText}
+                    </>
+                  ) : duel.winner === null ? (
+                    <>
+                      <FaBalanceScale className="text-orange-400" />{" "}
+                      {statusText}
+                    </>
+                  ) : (
+                    <>
+                      <FaSkull className="text-red-400" /> {statusText}
+                    </>
+                  )
+                ) : isMyTurn ? (
+                  <>
+                    <FaFire className="text-orange-400" /> {statusText}
+                  </>
+                ) : (
+                  <>
+                    <FaClock className="text-gray-400" /> {statusText}
+                  </>
+                )}
+              </p>
             </div>
             {isMyTurn && (
-              <button
+              <motion.button
                 onClick={() => onPlay(duel._id)}
-                className="font-semibold py-2 px-4 rounded-md text-sm bg-green-600 hover:bg-green-500"
+                className="font-bold py-3 px-6 rounded-lg text-sm bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg flex items-center gap-2"
+                style={{ fontFamily: "Rajdhani, sans-serif" }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
+                <FaGamepad />
                 Play
-              </button>
+              </motion.button>
             )}
           </motion.div>
         );
@@ -137,11 +251,18 @@ const FindPlayers = ({ token }) => {
   useEffect(() => {
     if (query.trim().length > 2) {
       const search = async () => {
-        const { data } = await axios.get(
-          `http://localhost:5000/api/friends/search?q=${query}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setResults(data);
+        try {
+          console.log("Searching for users with query:", query);
+          const { data } = await axios.get(
+            `http://localhost:5000/api/friends/search?q=${query}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          console.log("Search results:", data);
+          setResults(data);
+        } catch (error) {
+          console.error("Search error:", error.response?.data || error.message);
+          setResults([]);
+        }
       };
       const timeoutId = setTimeout(search, 500); // Debounce search
       return () => clearTimeout(timeoutId);
@@ -150,33 +271,60 @@ const FindPlayers = ({ token }) => {
     }
   }, [query, token]);
 
-  const handleSendRequest = async (userId) => {
-    await axios.post(
-      `http://localhost:5000/api/friends/request/${userId}`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setSentRequests([...sentRequests, userId]);
+  const handleSendRequest = async (user) => {
+    try {
+      console.log(
+        "Sending friend request to:",
+        user.username,
+        "with ID:",
+        user._id
+      );
+      const response = await axios.post(
+        `http://localhost:5000/api/friends/request/${user._id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      console.log("Friend request response:", response.data);
+      setSentRequests([...sentRequests, user._id]);
+    } catch (error) {
+      console.error(
+        "Error sending friend request:",
+        error.response?.data || error.message
+      );
+      // You can add a toast notification here if needed
+    }
   };
 
   return (
     <div>
-      <input
+      <motion.input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search for challengers by username..."
-        className="w-full p-3 bg-gray-900 border-2 border-gray-700 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-red-500"
+        className="w-full p-4 bg-gradient-to-r from-gray-900 to-red-900/50 border-2 border-gray-700 focus:border-orange-500 rounded-xl mb-6 focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-white placeholder-orange-300 transition-all duration-300"
+        style={{ fontFamily: "Rajdhani, sans-serif" }}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
       />
-      <div className="space-y-3">
-        {results.map((user) => (
-          <UserCard
+      <div className="space-y-4">
+        {results.map((user, index) => (
+          <motion.div
             key={user._id}
-            user={user}
-            onAction={handleSendRequest}
-            actionText={sentRequests.includes(user._id) ? "Sent" : "Add Friend"}
-            actionIcon={<FaUserPlus />}
-          />
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.1, duration: 0.4 }}
+          >
+            <UserCard
+              user={user}
+              onAction={handleSendRequest}
+              actionText={
+                sentRequests.includes(user._id) ? "Sent" : "Add Friend"
+              }
+              actionIcon={<FaUserPlus />}
+            />
+          </motion.div>
         ))}
       </div>
     </div>
@@ -203,37 +351,70 @@ const FriendRequests = ({ requests, token, onUpdate }) => {
 
   if (requests.length === 0)
     return (
-      <p className="text-gray-500 text-center mt-8">No new friend requests.</p>
+      <motion.div
+        className="text-center mt-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <p
+          className="text-orange-400 text-lg flex items-center justify-center gap-2"
+          style={{ fontFamily: "Rajdhani, sans-serif" }}
+        >
+          <FaInbox className="text-orange-400" />
+          No new friend requests.
+        </p>
+        <p className="text-red-300 text-sm mt-2">
+          Your reputation precedes you...
+        </p>
+      </motion.div>
     );
 
   return (
-    <div className="space-y-3">
-      {requests.map((req) => (
+    <div className="space-y-4">
+      {requests.map((req, index) => (
         <motion.div
           key={req._id}
-          className="flex items-center bg-gray-800/50 p-4 rounded-lg border border-gray-700"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          className="flex items-center bg-gradient-to-r from-gray-900/80 to-orange-900/40 p-5 rounded-xl border-2 border-orange-600/50 shadow-lg"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: index * 0.1, duration: 0.4 }}
+          whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
         >
           <div className="flex-grow">
-            <p className="font-bold text-white">{req.username}</p>
-            <p className="text-sm text-gray-400">
-              Level {req.level} - {req.rank}
+            <p
+              className="font-bold text-orange-200 text-lg flex items-center gap-2"
+              style={{ fontFamily: "Rajdhani, sans-serif" }}
+            >
+              <FaUser className="text-orange-400" />
+              {req.username}
+            </p>
+            <p
+              className="text-sm text-orange-300 flex items-center gap-1"
+              style={{ fontFamily: "Rajdhani, sans-serif" }}
+            >
+              <FaFire className="text-orange-400" />
+              Level {req.level} - {req.rank || "Apprentice"}
             </p>
           </div>
-          <div className="flex gap-2">
-            <button
+          <div className="flex gap-3">
+            <motion.button
               onClick={() => handleAccept(req._id)}
-              className="font-semibold py-1 px-3 rounded-md text-sm bg-green-600 hover:bg-green-500"
+              className="font-bold py-2 px-4 rounded-lg text-sm bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-md"
+              style={{ fontFamily: "Rajdhani, sans-serif" }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              Accept
-            </button>
-            <button
+              ✅ Accept
+            </motion.button>
+            <motion.button
               onClick={() => handleDecline(req._id)}
-              className="font-semibold py-1 px-3 rounded-md text-sm bg-red-600 hover:bg-red-500"
+              className="font-bold py-2 px-4 rounded-lg text-sm bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-md"
+              style={{ fontFamily: "Rajdhani, sans-serif" }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              Decline
-            </button>
+              ❌ Decline
+            </motion.button>
           </div>
         </motion.div>
       ))}
@@ -308,49 +489,85 @@ const SocialPage = () => {
         friend={selectedFriend}
         token={token}
       />
-      <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-black via-red-950 to-orange-950 text-white p-4 sm:p-8">
         <header className="text-center mb-12">
-          <h1
-            className="text-5xl font-black uppercase text-white"
-            style={{ textShadow: "0 0 15px rgba(239, 68, 68, 0.7)" }}
+          <motion.h1
+            className="text-5xl font-black uppercase text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 flex items-center justify-center gap-4"
+            style={{
+              fontFamily: "Orbitron, monospace",
+              textShadow: "0 0 20px rgba(220, 38, 38, 0.5)",
+            }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
           >
+            <FaFire className="text-orange-400" />
             The Soul-Binding
-          </h1>
-          <p className="text-gray-400 mt-2">
-            Forge alliances and challenge your rivals.
-          </p>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="mt-6 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg"
+            <FaFire className="text-orange-400" />
+          </motion.h1>
+          <motion.p
+            className="text-orange-200 mt-4 text-lg flex items-center justify-center gap-2"
+            style={{ fontFamily: "Rajdhani, sans-serif" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
           >
-            &larr; Back to Dashboard
-          </button>
+            Forge unholy alliances and challenge your rivals in the fires of
+            coding hell
+            <GiDevilMask className="text-red-400" />
+          </motion.p>
+          <motion.button
+            onClick={() => navigate("/dashboard")}
+            className="mt-6 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-lg border border-red-500 transition-all duration-300 shadow-lg hover:shadow-red-500/25"
+            style={{ fontFamily: "Rajdhani, sans-serif" }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            ← Back to Dashboard
+          </motion.button>
         </header>
-        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-6 max-w-4xl mx-auto">
-          <div className="flex border-b border-gray-700 mb-6">
+        <motion.div
+          className="bg-gradient-to-br from-gray-900/90 to-red-900/50 backdrop-blur-sm border-2 border-orange-600/30 rounded-2xl p-6 max-w-4xl mx-auto shadow-2xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+        >
+          <div className="flex border-b-2 border-orange-600/50 mb-6">
             {tabs.map((tab) => (
-              <button
+              <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 font-semibold py-3 px-4 transition-colors relative ${
+                className={`flex items-center gap-2 font-bold py-4 px-6 transition-all duration-300 relative ${
                   activeTab === tab.id
-                    ? "text-red-400"
-                    : "text-gray-400 hover:text-white"
+                    ? "text-orange-400"
+                    : "text-gray-400 hover:text-orange-300"
                 }`}
+                style={{ fontFamily: "Rajdhani, sans-serif" }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 {tab.icon} {tab.label}
                 {tab.count > 0 && (
-                  <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <motion.span
+                    className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold shadow-lg"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200 }}
+                  >
                     {tab.count}
-                  </span>
+                  </motion.span>
                 )}
                 {activeTab === tab.id && (
                   <motion.div
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500"
+                    className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 to-orange-500 rounded-full"
                     layoutId="underline"
+                    transition={{ duration: 0.3 }}
                   />
                 )}
-              </button>
+              </motion.button>
             ))}
           </div>
 
@@ -360,7 +577,7 @@ const SocialPage = () => {
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -10, opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.3 }}
             >
               {activeTab === "duels" && (
                 <DuelsList
@@ -385,7 +602,7 @@ const SocialPage = () => {
               {activeTab === "find" && <FindPlayers token={token} />}
             </motion.div>
           </AnimatePresence>
-        </div>
+        </motion.div>
       </div>
     </>
   );

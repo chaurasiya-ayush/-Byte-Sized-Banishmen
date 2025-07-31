@@ -1,5 +1,3 @@
-import React from "react";
-
 const IntegerComponent = ({ onAnswerChange, value }) => {
   return (
     <div className="flex justify-center">
