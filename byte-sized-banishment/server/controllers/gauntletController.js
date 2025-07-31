@@ -4,6 +4,7 @@ import Question from "../models/questionModel.js";
 import {
   selectNextQuestion,
   getDevilDialogue,
+  getDifficultyChangeDialogue,
   validateAnswer,
   findWeakestLink,
   getTimerDuration,
@@ -75,11 +76,8 @@ export const handleTimeout = async (req, res) => {
     // Treat timeout as incorrect answer
     session.incorrectAnswers += 1;
     session.strikesLeft -= 1;
-    session.correctStreak = 0;
+    session.correctStreak = 0; // Reset overall session streak
     session.currentQuestionIndex += 1;
-
-    // Update difficulty progression
-    updateDifficultyProgression(session, false);
 
     // Update user progress tracking for timeout (counts as incorrect)
     const progressKey = question.subTopic
@@ -209,9 +207,23 @@ export const handleTimeout = async (req, res) => {
     session.questionHistory.push(nextQuestion._id);
     await Promise.all([session.save(), user.save()]);
 
+    // Get difficulty change dialogue if there was a difficulty change
+    let difficultyChangeDialogue = "";
+    if (
+      nextQuestion.difficultyChangeInfo &&
+      nextQuestion.difficultyChangeInfo.changed
+    ) {
+      difficultyChangeDialogue = getDifficultyChangeDialogue(
+        nextQuestion.difficultyChangeInfo.from,
+        nextQuestion.difficultyChangeInfo.to,
+        nextQuestion.difficultyChangeInfo.reason
+      );
+    }
+
     res.json({
       result: "timeout",
       feedback: timeoutDialogue,
+      difficultyChangeDialogue: difficultyChangeDialogue, // Add difficulty change dialogue
       nextQuestion: nextQuestion,
       sessionProgress: {
         currentQuestion: session.currentQuestionIndex,
@@ -261,64 +273,6 @@ const getTimeoutDialogue = (difficulty, questionType) => {
     timeoutMessages[difficulty]?.[questionType] ||
     "Time's up! Speed up or face my wrath!";
   return { text: message, audioUrl: null };
-};
-
-// Difficulty progression logic
-const updateDifficultyProgression = (session, isCorrect) => {
-  const currentDifficulty = session.currentDifficulty;
-  let newDifficulty = currentDifficulty;
-  let difficultyChanged = false;
-
-  if (isCorrect) {
-    session.consecutiveCorrect += 1;
-    session.consecutiveIncorrect = 0; // Reset incorrect streak
-
-    // Easy -> Medium after 5 consecutive correct
-    if (currentDifficulty === "easy" && session.consecutiveCorrect >= 5) {
-      newDifficulty = "medium";
-      difficultyChanged = true;
-      session.consecutiveCorrect = 0; // Reset streak
-    }
-    // Medium -> Hard after 4 consecutive correct
-    else if (
-      currentDifficulty === "medium" &&
-      session.consecutiveCorrect >= 4
-    ) {
-      newDifficulty = "hard";
-      difficultyChanged = true;
-      session.consecutiveCorrect = 0; // Reset streak
-    }
-  } else {
-    session.consecutiveIncorrect += 1;
-    session.consecutiveCorrect = 0; // Reset correct streak
-
-    // Hard -> Medium after 1 incorrect
-    if (currentDifficulty === "hard" && session.consecutiveIncorrect >= 1) {
-      newDifficulty = "medium";
-      difficultyChanged = true;
-      session.consecutiveIncorrect = 0; // Reset streak
-    }
-    // Medium -> Easy after 2 consecutive incorrect
-    else if (
-      currentDifficulty === "medium" &&
-      session.consecutiveIncorrect >= 2
-    ) {
-      newDifficulty = "easy";
-      difficultyChanged = true;
-      session.consecutiveIncorrect = 0; // Reset streak
-    }
-  }
-
-  if (difficultyChanged) {
-    session.currentDifficulty = newDifficulty;
-    session.difficultyProgression.push({
-      questionIndex: session.currentQuestionIndex,
-      difficulty: newDifficulty,
-      reason: isCorrect ? "promoted_for_streak" : "demoted_for_mistakes",
-    });
-  }
-
-  return difficultyChanged;
 };
 
 // --- Controller Functions ---
@@ -561,23 +515,13 @@ export const submitAnswer = async (req, res) => {
       }
     }
 
-    // Update difficulty progression
-    const difficultyChanged = updateDifficultyProgression(session, isCorrect);
+    console.log(
+      `[NEXT] Q${session.currentQuestionIndex} | Answer: ${
+        isCorrect ? "✅" : "❌"
+      } | Difficulty: ${session.currentDifficulty}`
+    );
 
-    // Add difficulty change message to dialogue if applicable
-    if (difficultyChanged && !devilDialogue) {
-      if (isCorrect) {
-        const newDiff = session.currentDifficulty;
-        devilDialogue = {
-          text: `Impressive streak! You've been promoted to ${newDiff.toUpperCase()} difficulty. Let's see if you can handle this!`,
-        };
-      } else {
-        const newDiff = session.currentDifficulty;
-        devilDialogue = {
-          text: `Struggling, are we? Difficulty decreased to ${newDiff.toUpperCase()}. Even the devil shows mercy... sometimes.`,
-        };
-      }
-    }
+    // Note: Difficulty progression will be handled by AI service in selectNextQuestion
 
     if (!devilDialogue) {
       const trigger = isCorrect
@@ -697,10 +641,24 @@ export const submitAnswer = async (req, res) => {
     session.questionHistory.push(nextQuestion._id);
     await Promise.all([session.save(), user.save()]);
 
+    // Get difficulty change dialogue if there was a difficulty change
+    let difficultyChangeDialogue = "";
+    if (
+      nextQuestion.difficultyChangeInfo &&
+      nextQuestion.difficultyChangeInfo.changed
+    ) {
+      difficultyChangeDialogue = getDifficultyChangeDialogue(
+        nextQuestion.difficultyChangeInfo.from,
+        nextQuestion.difficultyChangeInfo.to,
+        nextQuestion.difficultyChangeInfo.reason
+      );
+    }
+
     res.json({
       result: isCorrect ? "correct" : "incorrect",
       feedback: devilDialogue,
       executionFeedback: executionFeedback, // Add execution feedback for code questions
+      difficultyChangeDialogue: difficultyChangeDialogue, // Add difficulty change dialogue
       nextQuestion: nextQuestion,
       sessionProgress: {
         currentQuestion: session.currentQuestionIndex,
@@ -824,8 +782,13 @@ export const quitSession = async (req, res) => {
       (session.sessionEndTime - session.sessionStartTime) / 1000
     );
 
+    // Check if user deserves punishment (quit without answering more than 3 questions correctly)
+    const deservesPunishment = session.correctAnswers <= 3;
+    const punishment = deservesPunishment ? generatePunishment() : null;
+
     res.json({
       message: "Session ended voluntarily",
+      punishment: punishment, // Include punishment if deserved
       sessionSummary: {
         questionsCompleted: session.currentQuestionIndex,
         totalQuestions: "Unlimited",

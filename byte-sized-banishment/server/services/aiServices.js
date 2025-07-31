@@ -14,54 +14,12 @@ try {
   console.error("Could not read dialogueWithAudio.json.", error);
 }
 
-// --- Engine 1: Enhanced Adaptive Question Selector ---
+// --- Engine 1: Enhanced Adaptive Question Selector with Difficulty Management ---
 async function selectNextQuestion(session, lastQuestion, isCorrect) {
-  const difficultyOrder = ["easy", "medium", "hard"];
+  // Update difficulty progression based on performance
+  const difficultyChangeInfo = updateDifficultyProgression(session, isCorrect);
 
-  let nextDifficulty = session.currentDifficulty;
-  let difficultyReason = "same";
-
-  // Adaptive difficulty logic
-  if (isCorrect) {
-    session.correctStreak += 1;
-
-    // Increase difficulty based on performance
-    if (session.correctStreak >= 3 && nextDifficulty === "easy") {
-      nextDifficulty = "medium";
-      difficultyReason = "correct_streak_3";
-    } else if (session.correctStreak >= 5 && nextDifficulty === "medium") {
-      nextDifficulty = "hard";
-      difficultyReason = "correct_streak_5";
-    }
-  } else {
-    // Reset streak and potentially decrease difficulty
-    session.correctStreak = 0;
-
-    // Decrease difficulty if struggling
-    if (session.strikesLeft <= 1 && nextDifficulty === "hard") {
-      nextDifficulty = "medium";
-      difficultyReason = "low_strikes_hard";
-    } else if (session.strikesLeft <= 1 && nextDifficulty === "medium") {
-      nextDifficulty = "easy";
-      difficultyReason = "low_strikes_medium";
-    }
-
-    // Additional difficulty adjustment based on recent performance
-    const recentQuestions = session.questionHistory.slice(-5);
-    if (recentQuestions.length >= 3) {
-      const recentIncorrect = session.incorrectAnswers;
-      const totalRecent = session.correctAnswers + session.incorrectAnswers;
-      const recentAccuracy = session.correctAnswers / totalRecent;
-
-      if (recentAccuracy < 0.4 && nextDifficulty !== "easy") {
-        nextDifficulty =
-          difficultyOrder[
-            Math.max(0, difficultyOrder.indexOf(nextDifficulty) - 1)
-          ];
-        difficultyReason = "low_recent_accuracy";
-      }
-    }
-  }
+  const nextDifficulty = session.currentDifficulty;
 
   // Build query to find next question
   let queryOptions = {
@@ -75,6 +33,7 @@ async function selectNextQuestion(session, lastQuestion, isCorrect) {
 
   // Fallback: try other difficulties if none found
   if (!nextQuestion) {
+    const difficultyOrder = ["easy", "medium", "hard"];
     delete queryOptions.difficulty;
 
     // Try each difficulty level
@@ -82,8 +41,9 @@ async function selectNextQuestion(session, lastQuestion, isCorrect) {
       queryOptions.difficulty = difficulty;
       nextQuestion = await Question.findOne(queryOptions);
       if (nextQuestion) {
-        nextDifficulty = difficulty;
-        difficultyReason = "fallback_available";
+        console.log(
+          `[AI] Fallback: Using ${difficulty} question (no ${nextDifficulty} available)`
+        );
         break;
       }
     }
@@ -94,28 +54,98 @@ async function selectNextQuestion(session, lastQuestion, isCorrect) {
     delete queryOptions.difficulty;
     nextQuestion = await Question.findOne(queryOptions);
     if (nextQuestion) {
-      nextDifficulty = nextQuestion.difficulty;
-      difficultyReason = "fallback_any";
+      console.log(`[AI] Final fallback: Using any available question`);
     }
   }
 
-  // Update session difficulty tracking and add timer duration
+  // Add timer duration based on difficulty and question type
   if (nextQuestion) {
-    session.currentDifficulty = nextDifficulty;
-    session.difficultyProgression.push({
-      questionIndex: session.currentQuestionIndex + 1,
-      difficulty: nextDifficulty,
-      reason: difficultyReason,
-    });
-
-    // Add timer duration based on difficulty and question type
     nextQuestion.timerDuration = getTimerDuration(
-      nextDifficulty,
+      nextQuestion.difficulty,
       nextQuestion.type
     );
+
+    // Add difficulty change information to the question response
+    nextQuestion.difficultyChangeInfo = difficultyChangeInfo;
   }
 
   return nextQuestion;
+}
+
+// --- AI-Controlled Difficulty Progression Logic ---
+function updateDifficultyProgression(session, isCorrect) {
+  const currentDifficulty = session.currentDifficulty;
+  let newDifficulty = currentDifficulty;
+  let difficultyChanged = false;
+
+  console.log(
+    `[AI-DIFF] ${currentDifficulty} | ${
+      isCorrect ? "CORRECT" : "WRONG"
+    } | Streak: ${session.consecutiveCorrect}/${session.consecutiveIncorrect}`
+  );
+
+  if (isCorrect) {
+    session.consecutiveCorrect += 1;
+    session.consecutiveIncorrect = 0; // Reset incorrect streak
+
+    // Easy -> Medium after 5 consecutive correct
+    if (currentDifficulty === "easy" && session.consecutiveCorrect >= 5) {
+      newDifficulty = "medium";
+      difficultyChanged = true;
+      session.consecutiveCorrect = 0; // Reset streak
+      console.log(`[AI-DIFF] ⬆️ PROMOTED: Easy -> Medium (5 correct)`);
+    }
+    // Medium -> Hard after 4 consecutive correct
+    else if (
+      currentDifficulty === "medium" &&
+      session.consecutiveCorrect >= 4
+    ) {
+      newDifficulty = "hard";
+      difficultyChanged = true;
+      session.consecutiveCorrect = 0; // Reset streak
+      console.log(`[AI-DIFF] ⬆️ PROMOTED: Medium -> Hard (4 correct)`);
+    }
+  } else {
+    session.consecutiveIncorrect += 1;
+    session.consecutiveCorrect = 0; // Reset correct streak
+
+    // Hard -> Medium after 1 incorrect
+    if (currentDifficulty === "hard" && session.consecutiveIncorrect >= 1) {
+      newDifficulty = "medium";
+      difficultyChanged = true;
+      session.consecutiveIncorrect = 0; // Reset streak
+      console.log(`[AI-DIFF] ⬇️ DEMOTED: Hard -> Medium (1 wrong)`);
+    }
+    // Medium -> Easy after 2 consecutive incorrect
+    else if (
+      currentDifficulty === "medium" &&
+      session.consecutiveIncorrect >= 2
+    ) {
+      newDifficulty = "easy";
+      difficultyChanged = true;
+      session.consecutiveIncorrect = 0; // Reset streak
+      console.log(`[AI-DIFF] ⬇️ DEMOTED: Medium -> Easy (2 wrong)`);
+    }
+  }
+
+  if (difficultyChanged) {
+    session.currentDifficulty = newDifficulty;
+    session.difficultyProgression.push({
+      questionIndex: session.currentQuestionIndex,
+      difficulty: newDifficulty,
+      reason: isCorrect ? "promoted_for_streak" : "demoted_for_mistakes",
+    });
+  }
+
+  return {
+    changed: difficultyChanged,
+    oldDifficulty: currentDifficulty,
+    newDifficulty: newDifficulty,
+    isCorrect: isCorrect,
+    dialogue: difficultyChanged
+      ? getDifficultyChangeDialogue(difficultyChanged, isCorrect, newDifficulty)
+      : null,
+  };
 }
 
 // --- Timer Duration Calculator ---
@@ -150,6 +180,43 @@ function getDevilDialogue(trigger) {
   const lines = dialogueLines[trigger] || [];
   if (lines.length === 0) return { text: "...", audioUrl: null };
   return lines[Math.floor(Math.random() * lines.length)];
+}
+
+// --- AI-Generated Difficulty Change Dialogue ---
+function getDifficultyChangeDialogue(
+  difficultyChanged,
+  isCorrect,
+  newDifficulty
+) {
+  if (!difficultyChanged) return null;
+
+  if (isCorrect) {
+    // Promotion dialogue
+    const promotionMessages = {
+      medium:
+        "Impressive streak! You've been promoted to MEDIUM difficulty. Let's see if you can handle this!",
+      hard: "Outstanding performance! Welcome to HARD difficulty. Only the best survive here!",
+    };
+    return {
+      text:
+        promotionMessages[newDifficulty] ||
+        `Promoted to ${newDifficulty.toUpperCase()} difficulty!`,
+      audioUrl: null,
+    };
+  } else {
+    // Demotion dialogue
+    const demotionMessages = {
+      easy: "Struggling, are we? Back to EASY difficulty. Even the devil shows mercy... sometimes.",
+      medium:
+        "You're faltering. Difficulty decreased to MEDIUM. Don't disappoint me again!",
+    };
+    return {
+      text:
+        demotionMessages[newDifficulty] ||
+        `Demoted to ${newDifficulty.toUpperCase()} difficulty.`,
+      audioUrl: null,
+    };
+  }
 }
 
 // --- Engine 3: Enhanced Answer Validator with Judge0 Integration ---
@@ -455,6 +522,8 @@ function findWeakestLink(userProgress) {
 export {
   selectNextQuestion,
   getDevilDialogue,
+  getDifficultyChangeDialogue,
+  updateDifficultyProgression,
   validateAnswer,
   findWeakestLink,
   getTimerDuration,

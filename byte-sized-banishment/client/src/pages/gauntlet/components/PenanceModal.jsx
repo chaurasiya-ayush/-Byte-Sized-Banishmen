@@ -6,6 +6,19 @@ import { FaScroll, FaFire } from "react-icons/fa";
 const PenanceModal = ({ punishment, onAcknowledge }) => {
   if (!punishment) return null;
 
+  const handleAccept = () => {
+    try {
+      console.log("PenanceModal: Accept button clicked");
+      if (onAcknowledge && typeof onAcknowledge === "function") {
+        onAcknowledge();
+      } else {
+        console.error("PenanceModal: onAcknowledge is not a function");
+      }
+    } catch (error) {
+      console.error("PenanceModal: Error in handleAccept:", error);
+    }
+  };
+
   return (
     <AnimatePresence>
       <motion.div
@@ -81,7 +94,7 @@ const PenanceModal = ({ punishment, onAcknowledge }) => {
           </div>
 
           <motion.button
-            onClick={onAcknowledge}
+            onClick={handleAccept}
             className="font-bold py-3 px-8 rounded-lg bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white text-lg transition-all border border-red-500/50 flex items-center gap-2 justify-center"
             style={{
               fontFamily: "'Orbitron', monospace",

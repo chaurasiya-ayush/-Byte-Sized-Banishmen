@@ -207,7 +207,12 @@ const SessionResultsModal = ({
               <GiSwordman className="text-red-400" />
               Your Punishment
             </h3>
-            <p className="text-red-100 text-sm">{punishment}</p>
+            <p className="text-red-100 text-sm font-bold mb-2">
+              "{punishment.task}"
+            </p>
+            <p className="text-red-300 text-xs italic">
+              ~ {punishment.quote} ~
+            </p>
           </div>
         )}
 
